@@ -136,21 +136,21 @@ export default function QuotaModal({ open, onClose }: { open: boolean; onClose: 
         >
           <div className="absolute inset-0 bg-[#2a1a10]/50 backdrop-blur-[3px]" onClick={onClose} />
           <motion.div
-            className="relative flex h-[calc(100vh-44px)] max-h-[760px] w-full max-w-[620px] overflow-hidden rounded-2xl bg-white shadow-lift"
+            className="relative flex h-[calc(100vh-44px)] w-[calc(100vw-40px)] overflow-hidden rounded-2xl bg-white shadow-lift lg:w-[calc(100vw-296px)] lg:max-w-[1080px]"
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.18 }}
           >
             {/* 左侧：搜索 + 设置菜单 */}
-            <aside className="w-32 flex-none overflow-y-auto border-r border-line bg-paper p-2.5 nice-scroll">
-              <div className="mb-3 flex h-7 items-center gap-1.5 rounded-lg border border-line bg-white px-2">
+            <aside className="w-52 flex-none overflow-y-auto border-r border-line bg-paper p-3 nice-scroll">
+              <div className="mb-3 flex h-8 items-center gap-2 rounded-lg border border-line bg-white px-2.5">
                 <Search size={13} className="flex-none text-faint" />
                 <input
                   value={kw}
                   onChange={(e) => setKw(e.target.value)}
                   placeholder="搜索"
-                  className="min-w-0 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-faint"
+                  className="min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none placeholder:text-faint"
                 />
               </div>
               {MENU.map((g) => {
@@ -169,11 +169,11 @@ export default function QuotaModal({ open, onClose }: { open: boolean; onClose: 
                           if (!active) pushToast({ type: 'info', title: `${it.label}（模拟功能）` })
                         }}
                         className={cn(
-                          'flex w-full items-center gap-1.5 rounded-lg px-1.5 py-[6px] text-left text-[12.5px] transition',
+                          'flex w-full items-center gap-2.5 rounded-lg px-2 py-[7px] text-left text-[13.5px] transition',
                           active ? 'bg-black/[0.07] font-medium text-ink' : 'text-body hover:bg-black/[0.04]',
                         )}
                       >
-                        <Icon size={13} className="flex-none text-faint" />
+                        <Icon size={15} className="flex-none text-faint" />
                         {it.label}
                       </button>
                     )
