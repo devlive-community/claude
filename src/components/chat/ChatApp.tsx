@@ -10,7 +10,7 @@ import { cn } from '../../lib/utils'
 import { ClaudeMark } from '../icons'
 import QuotaModal from './QuotaModal'
 
-const MODELS = ['Claude 国风特调 v1', 'Claude Sonnet 4.5', 'Claude Opus 4.1']
+const MODELS = ['Claude Sonnet 4.5', 'Claude Opus 4.1', 'Claude Haiku 4.5']
 
 const SUGGESTIONS = [
   '帮我写一份周报，重点是砍一刀活动上线',
