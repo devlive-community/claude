@@ -1,30 +1,51 @@
 import { useState, type ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Menu, MessageSquarePlus } from 'lucide-react'
 import Sidebar from './Sidebar'
-import TopBar from './TopBar'
-import Footer from './Footer'
-import MobileTabBar from './MobileTabBar'
 import InviteModal from './InviteModal'
 import ToastHost from '../ui/ToastHost'
 import CoinFlyHost from '../ui/CoinFlyHost'
+import { ClaudeMark } from '../icons'
 
-/** 应用外壳：Claude 官网式侧栏 + 主内容区 */
+/** 应用外壳：与 claude.ai 一致 —— 侧栏承载一切，无顶栏、无页脚 */
 export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const isChatHome = location.pathname === '/'
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-paper">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-h-screen flex-col lg:pl-[264px]">
-        <TopBar onOpenSidebar={() => setSidebarOpen(true)} />
-        <div className={isChatHome ? 'flex flex-1 flex-col' : 'flex-1'}>
-          {children}
-          {!isChatHome && <Footer />}
-        </div>
+
+      {/* 移动端顶栏（claude.ai 移动端样式：菜单 + Logo + 新对话） */}
+      <div className="sticky top-0 z-30 flex h-13 items-center gap-1 border-b border-black/[0.05] bg-paper/90 px-2 backdrop-blur lg:hidden" style={{ height: 52 }}>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
+          aria-label="打开菜单"
+        >
+          <Menu size={19} />
+        </button>
+        <span className="flex items-center gap-1.5">
+          <span className="text-ink">
+            <ClaudeMark size={20} />
+          </span>
+          <span className="font-serif text-[15px] font-bold text-ink">Claude</span>
+        </span>
+        <button
+          onClick={() => navigate('/')}
+          className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
+          aria-label="新对话"
+        >
+          <MessageSquarePlus size={18} />
+        </button>
       </div>
-      <MobileTabBar />
+
+      <div className={isChatHome ? 'flex min-h-[calc(100vh-52px)] flex-col lg:min-h-screen' : 'min-h-[calc(100vh-52px)] lg:min-h-screen'}>
+        {children}
+      </div>
+
       <InviteModal />
       <ToastHost />
       <CoinFlyHost />

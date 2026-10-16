@@ -193,7 +193,7 @@ export default function ChatApp() {
               transition={{ delay: 0.24 }}
               className="mt-7 grid w-full max-w-2xl grid-cols-1 gap-2 sm:grid-cols-2"
             >
-              {SUGGESTIONS.map((s, i) => (
+              {SUGGESTIONS.map((s) => (
                 <motion.button
                   key={s}
                   whileHover={{ y: -2 }}
@@ -202,11 +202,8 @@ export default function ChatApp() {
                     setDraft(s)
                     taRef.current?.focus()
                   }}
-                  className="flex items-center gap-2 rounded-xl border border-line bg-white/70 px-4 py-3 text-left text-[13px] text-body shadow-sm transition hover:border-gold/60 hover:bg-white"
+                  className="rounded-full border border-line bg-transparent px-4 py-2 text-[13px] text-body transition hover:border-brand/50 hover:bg-white"
                 >
-                  <span className="flex h-5 w-5 flex-none items-center justify-center rounded-md bg-brand-soft text-[10px] font-bold text-brand-deep">
-                    {i + 1}
-                  </span>
                   {s}
                 </motion.button>
               ))}
@@ -288,21 +285,38 @@ export default function ChatApp() {
                 e.target.value = ''
               }}
             />
-            <button onClick={() => fileRef.current?.click()} className={cn('chip-toggle', file && 'chip-on')} title="上传文件（模拟）">
-              <Paperclip size={13} />
-              <span className="hidden sm:inline">{file ?? '上传'}</span>
+            <button
+              onClick={() => fileRef.current?.click()}
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5',
+                file && 'text-brand',
+              )}
+              title={file ? `已选：${file}` : '上传文件（模拟）'}
+            >
+              <Paperclip size={15} />
             </button>
-            <button onClick={() => setWeb((v) => !v)} className={cn('chip-toggle', web && 'chip-on')}>
-              <Globe size={13} /> <span className="hidden sm:inline">联网搜索</span>
+            <button
+              onClick={() => setWeb((v) => !v)}
+              className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-black/5', web ? 'bg-brand-soft text-brand-deep' : 'text-body')}
+              title="联网搜索（模拟）"
+            >
+              <Globe size={15} />
             </button>
-            <button onClick={() => setDeep((v) => !v)} className={cn('chip-toggle', deep && 'chip-on')}>
-              <Brain size={13} /> <span className="hidden sm:inline">深度思考</span>
+            <button
+              onClick={() => setDeep((v) => !v)}
+              className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-black/5', deep ? 'bg-brand-soft text-brand-deep' : 'text-body')}
+              title="深度思考（模拟）"
+            >
+              <Brain size={15} />
             </button>
 
-            {/* 模型选择 */}
-            <div className="relative ml-1 hidden sm:block">
-              <button onClick={() => setModelOpen((v) => !v)} className="chip-toggle">
-                {model} <ChevronDown size={12} className={cn('transition', modelOpen && 'rotate-180')} />
+            {/* 模型选择（claude.ai 位置：发送键左侧） */}
+            <div className="relative ml-auto">
+              <button
+                onClick={() => setModelOpen((v) => !v)}
+                className="flex h-8 items-center gap-1 rounded-lg px-2 text-[12.5px] font-medium text-body transition hover:bg-black/5"
+              >
+                {model} <ChevronDown size={12} className={cn('text-faint transition', modelOpen && 'rotate-180')} />
               </button>
               <AnimatePresence>
                 {modelOpen && (
@@ -341,7 +355,7 @@ export default function ChatApp() {
               whileTap={{ scale: 0.9 }}
               className={cn(
                 'ml-auto flex h-9 w-9 items-center justify-center rounded-full text-white transition',
-                typing || !draft.trim() ? 'bg-[#D8C9B4]' : 'bg-gradient-to-br from-[#D97757] to-[#C05A3B] shadow-red hover:brightness-105',
+                typing || !draft.trim() ? 'bg-[#DAD7CE]' : 'bg-ink hover:bg-black',
               )}
               aria-label="发送"
             >
@@ -351,8 +365,8 @@ export default function ChatApp() {
         </div>
 
         {/* 额度提示 */}
-        <div className="mt-2 flex items-center justify-center gap-2 text-[11px] text-faint">
-          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#EFE3CD]">
+        <div className="mt-1.5 flex items-center justify-center gap-2 text-[11px] text-faint">
+          <div className="h-1 w-14 overflow-hidden rounded-full bg-black/[0.07]">
             <motion.div
               className={cn('h-full rounded-full', remaining > 2 ? 'bg-[#6FBF73]' : 'bg-gradient-to-r from-[#F04438] to-[#B91C1C]')}
               animate={{ width: `${pct}%` }}
