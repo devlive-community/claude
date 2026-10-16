@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Link2, Lock, Settings, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Link2, Lock, Settings, X } from 'lucide-react'
 import { useUIStore } from '../../store/useUIStore'
 import { useUserStore } from '../../store/useUserStore'
 import { cn } from '../../lib/utils'
@@ -42,32 +41,51 @@ export default function ShareModal({
 
   const copyLink = () => {
     const link = `${location.origin}/chat/${chatId}`
-    navigator.clipboard
-      .writeText(link)
-      .then(() => {
-        setCopied(true)
-        pushToast({ type: 'success', title: '分享链接已复制', desc: link })
-        setTimeout(() => setCopied(false), 1600)
-      })
-      .catch(() => pushToast({ type: 'warn', title: '复制失败，请手动复制', desc: link }))
+    const ok = () => {
+      setCopied(true)
+      pushToast({ type: 'success', title: '分享链接已复制', desc: link })
+      setTimeout(() => setCopied(false), 1600)
+    }
+    const fallbackCopy = () => {
+      const ta = document.createElement('textarea')
+      ta.value = link
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      let done = false
+      try {
+        done = document.execCommand('copy')
+      } catch {
+        done = false
+      }
+      document.body.removeChild(ta)
+      if (done) ok()
+      else pushToast({ type: 'warn', title: '复制失败，请手动复制', desc: link })
+    }
+    navigator.clipboard.writeText(link).then(ok).catch(fallbackCopy)
   }
 
-  return createPortal(
+  return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-[85] flex items-start justify-center p-4 pt-[12vh]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+        <>
+          {/* 透明遮罩：点击面板外部关闭（不变暗，claude.ai 同款） */}
           <motion.div
-            className="relative w-full max-w-[480px] overflow-hidden rounded-2xl bg-white shadow-lift"
-            initial={{ opacity: 0, scale: 0.95, y: 14 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            transition={{ duration: 0.16 }}
+            className="fixed inset-0 z-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+          {/* 锚定在分享按钮下方的面板 */}
+          <motion.div
+            className="absolute right-0 top-[calc(100%+8px)] z-30 max-h-[min(72vh,560px)] w-[440px] max-w-[calc(100vw-24px)] overflow-y-auto overflow-x-hidden rounded-2xl bg-white shadow-lift nice-scroll"
+            style={{ transformOrigin: 'top right' }}
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.15 }}
           >
             {view === 'main' ? (
               <>
@@ -107,7 +125,10 @@ export default function ShareModal({
                   {/* 访问权限 */}
                   <p className="mt-5 text-[13px] text-faint">访问权限</p>
                   <button
-                    onClick={() => setView('settings')}
+                    onClick={() => {
+                      setAccessOpen(false)
+                      setView('settings')
+                    }}
                     className="mt-1.5 flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-black/[0.04]"
                   >
                     <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-black/[0.06] text-faint">
@@ -216,10 +237,13 @@ export default function ShareModal({
                             setDraftAccess(o.key)
                             setAccessOpen(false)
                           }}
-                          className="block w-full rounded-lg px-3 py-2 text-left transition hover:bg-black/[0.04]"
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-black/[0.04]"
                         >
-                          <span className="block text-[13.5px] font-semibold text-ink">{o.label}</span>
-                          <span className="block text-[11.5px] text-faint">{o.desc}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13.5px] font-semibold text-ink">{o.label}</span>
+                            <span className="block text-[11.5px] text-faint">{o.desc}</span>
+                          </span>
+                          {draftAccess === o.key && <Check size={15} className="flex-none text-[#2C84DB]" strokeWidth={2.5} />}
                         </button>
                       ))}
                     </div>
@@ -230,6 +254,7 @@ export default function ShareModal({
                   <button
                     onClick={() => {
                       setDraftAccess(access)
+                      setAccessOpen(false)
                       setView('main')
                     }}
                     className="h-10 rounded-xl border border-line bg-white px-4 text-[13.5px] font-medium text-body transition hover:bg-card-deep"
@@ -240,6 +265,7 @@ export default function ShareModal({
                     disabled={draftAccess === access}
                     onClick={() => {
                       setAccess(draftAccess)
+                      setAccessOpen(false)
                       setView('main')
                       pushToast({ type: 'success', title: '分享设置已更新（模拟）' })
                     }}
@@ -251,9 +277,8 @@ export default function ShareModal({
               </div>
             )}
           </motion.div>
-        </motion.div>
+        </>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   )
 }
