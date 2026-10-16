@@ -1,23 +1,23 @@
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarCheck, HandCoins, Sparkles, Tv, Users } from 'lucide-react'
 import AnimatedNumber from '../ui/AnimatedNumber'
 import { useUIStore } from '../../store/useUIStore'
-import { useSectionNav } from '../../lib/useSectionNav'
 
 const TAGS = [
-  { label: '看广告解锁', icon: Tv, action: 'ads' },
-  { label: '砍一刀免费领', icon: HandCoins, action: 'bargain' },
-  { label: '每日签到领金币', icon: CalendarCheck, action: 'signin' },
+  { label: '看广告解锁', icon: Tv, action: '/activities' },
+  { label: '砍一刀免费领', icon: HandCoins, action: '/activities' },
+  { label: '每日签到领金币', icon: CalendarCheck, action: '/tasks' },
   { label: '邀请好友得额度', icon: Users, action: 'invite' },
 ]
 
 export default function Hero() {
-  const go = useSectionNav()
+  const navigate = useNavigate()
   const openInvite = useUIStore((s) => s.openInvite)
 
   const onTag = (action: string) => {
     if (action === 'invite') openInvite('chats')
-    else go(action)
+    else navigate(action)
   }
 
   return (

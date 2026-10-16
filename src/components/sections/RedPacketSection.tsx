@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Gift, PartyPopper, Timer, X } from 'lucide-react'
 import { useUserStore } from '../../store/useUserStore'
@@ -41,16 +42,23 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
   const popRef = useRef({ x: 0, y: 0, text: '', key: 0 })
   const [pops, setPops] = useState<{ key: number; x: number; y: number; text: string }[]>([])
 
+  const finishRef = useRef(() => {})
   const finish = () => {
     if (finishedRef.current) return
     finishedRef.current = true
     setFinished(true)
     setPackets([])
-    if (sum > 0) {
-      markPlayed(sum)
-      pushToast({ type: 'coin', title: `红包雨结束！共获得 ${sum} 金币`, desc: '金币已自动到账' })
+    const total = sumRef.current
+    if (total > 0) {
+      markPlayed(total)
+      pushToast({ type: 'coin', title: `红包雨结束！共获得 ${total} 金币`, desc: '金币已自动到账' })
     }
   }
+  finishRef.current = finish
+
+  // 截止时间驱动：避免在 setState updater 中产生副作用
+  const endRef = useRef(Date.now() + RAIN_DURATION * 1000)
+  const sumRef = useRef(0)
 
   useEffect(() => {
     const spawn = window.setInterval(() => {
@@ -73,15 +81,13 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
       })
     }, 300)
     const timer = window.setInterval(() => {
-      setLeft((v) => {
-        if (v <= 1) {
-          window.clearInterval(timer)
-          finish()
-          return 0
-        }
-        return v - 1
-      })
-    }, 1000)
+      const remain = Math.max(0, Math.round((endRef.current - Date.now()) / 1000))
+      setLeft(remain)
+      if (remain <= 0) {
+        window.clearInterval(timer)
+        finishRef.current()
+      }
+    }, 250)
     return () => {
       window.clearInterval(spawn)
       window.clearInterval(timer)
@@ -94,7 +100,8 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
     if (p.opened || finishedRef.current) return
     setPackets((ps) => ps.map((x) => (x.id === p.id ? { ...x, opened: true } : x)))
     if (p.value > 0) {
-      setSum((s) => s + p.value)
+      sumRef.current += p.value
+      setSum((sv) => sv + p.value)
       setCount((c) => c + 1)
     }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -107,13 +114,13 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
     window.setTimeout(() => setPackets((ps) => ps.filter((x) => x.id !== p.id)), 550)
   }
 
-  return (
+  return createPortal(
     <motion.div
-      className="fixed inset-0 z-[70] overflow-hidden"
+      className="fixed inset-0 z-[75] overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ background: 'radial-gradient(120% 100% at 50% 0%, rgba(142,27,27,0.88), rgba(46,10,10,0.94))' }}
+      style={{ background: 'radial-gradient(120% 100% at 50% 0%, rgba(112,20,20,0.94), rgba(36,8,8,0.97))' }}
     >
       {/* 顶部状态栏 */}
       <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/50 to-transparent px-4 py-3">
@@ -237,7 +244,8 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }
 

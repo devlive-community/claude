@@ -1,21 +1,21 @@
 import { ShieldAlert } from 'lucide-react'
-import { useSectionNav } from '../../lib/useSectionNav'
+import { useNavigate } from 'react-router-dom'
 import { InkScrollFooter } from '../InkBackground'
 import { ClaudeMark } from '../icons'
 
 const LINKS = [
-  { label: 'AI 对话', id: 'chat' },
-  { label: '每日签到', id: 'signin' },
-  { label: '砍一刀', id: 'bargain' },
-  { label: '幸运大转盘', id: 'wheel' },
-  { label: '金币商城', id: 'shop' },
-  { label: '每日任务', id: 'tasks' },
+  { label: 'AI 对话', path: '/chat' },
+  { label: '每日签到', path: '/tasks' },
+  { label: '活动广场', path: '/activities' },
+  { label: 'AI 绘画', path: '/paint' },
+  { label: '金币商城', path: '/shop' },
+  { label: '关于我们', path: '/about' },
 ]
 
 const EVENTS = ['看广告解锁对话', '红包雨限时开启', '摇一摇领金币', '邀请好友砍一刀', '限时会员特惠', '连续签到赢金币']
 
 export default function Footer() {
-  const go = useSectionNav()
+  const navigate = useNavigate()
   return (
     <footer className="relative z-10">
       <InkScrollFooter />
@@ -38,8 +38,8 @@ export default function Footer() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               {LINKS.map((l) => (
                 <button
-                  key={l.id}
-                  onClick={() => go(l.id)}
+                  key={l.path}
+                  onClick={() => navigate(l.path)}
                   className="text-left text-xs text-body transition hover:text-cred"
                 >
                   {l.label}

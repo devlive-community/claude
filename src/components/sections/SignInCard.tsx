@@ -23,9 +23,10 @@ export default function SignInCard() {
     if (signedInToday) return
     const reward = signIn()
     if (reward <= 0) return
+    const newStreak = useUserStore.getState().streak
     const from = centerOf(btnRef.current)
     if (from) flyCoins(from, 8)
-    pushToast({ type: 'coin', title: `签到成功，获得 ${reward} 金币！`, desc: `已连续签到 ${streak} 天` })
+    pushToast({ type: 'coin', title: `签到成功，获得 ${reward} 金币！`, desc: `已连续签到 ${newStreak} 天` })
   }
 
   return (

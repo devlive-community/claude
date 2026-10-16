@@ -4,19 +4,19 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, ChevronDown, Crown, LogOut, Send } from 'lucide-react'
 import { useUserStore } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
-import { useSectionNav } from '../../lib/useSectionNav'
 import { cn } from '../../lib/utils'
+import { useLocation } from 'react-router-dom'
 import { ClaudeMark, CoinIcon } from '../icons'
 import AnimatedNumber from '../ui/AnimatedNumber'
 import Modal from '../ui/Modal'
 
-const MENU: Array<{ label: string; section?: string; path?: string }> = [
-  { label: '首页', section: 'hero' },
-  { label: 'AI 对话', section: 'chat' },
+const MENU = [
+  { label: '首页', path: '/' },
+  { label: 'AI 对话', path: '/chat' },
   { label: 'AI 绘画', path: '/paint' },
-  { label: '任务中心', section: 'tasks' },
-  { label: '金币商城', section: 'shop' },
-  { label: '活动广场', section: 'wheel' },
+  { label: '任务中心', path: '/tasks' },
+  { label: '金币商城', path: '/shop' },
+  { label: '活动广场', path: '/activities' },
   { label: '关于我们', path: '/about' },
 ]
 
@@ -134,8 +134,8 @@ export default function Navbar() {
   const isMember = useUserStore((s) => s.isMember)
   const logout = useUserStore((s) => s.logout)
   const pushToast = useUIStore((s) => s.pushToast)
-  const goSection = useSectionNav()
   const navigate = useNavigate()
+  const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -160,7 +160,7 @@ export default function Navbar() {
       >
         <div className="mx-auto flex h-full max-w-[1440px] items-center gap-3 px-4 md:px-6">
           {/* 品牌 */}
-          <button onClick={() => goSection('hero')} className="flex items-center gap-2.5 text-left">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5 text-left">
             <span className="text-brand">
               <ClaudeMark size={30} />
             </span>
@@ -180,9 +180,10 @@ export default function Navbar() {
             {MENU.map((m) => (
               <button
                 key={m.label}
-                onClick={() => (m.path ? navigate(m.path) : goSection(m.section!))}
+                onClick={() => navigate(m.path)}
                 className={cn(
-                  'rounded-lg px-3 py-2 text-[13px] font-medium text-body transition hover:bg-cred-soft/60 hover:text-cred',
+                  'rounded-lg px-3 py-2 text-[13px] font-medium transition hover:bg-cred-soft/60 hover:text-cred',
+                  location.pathname === m.path ? 'bg-cred-soft/70 font-bold text-cred' : 'text-body',
                 )}
               >
                 {m.label}
@@ -194,7 +195,7 @@ export default function Navbar() {
             {/* 金币余额 */}
             <button
               id="nav-coin"
-              onClick={() => goSection('shop')}
+              onClick={() => navigate('/shop')}
               className="flex h-9 items-center gap-1.5 rounded-full border border-gold/50 bg-gold-soft px-3 transition hover:border-gold"
               title="金币余额，点击前往金币商城"
             >

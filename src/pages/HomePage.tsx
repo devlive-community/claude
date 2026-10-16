@@ -1,66 +1,54 @@
 import Hero from '../components/sections/Hero'
-import SignInCard from '../components/sections/SignInCard'
-import ChatSection from '../components/sections/ChatSection'
-import QuickActions from '../components/sections/QuickActions'
-import AdsSection from '../components/sections/AdsSection'
 import MemberCard from '../components/sections/MemberCard'
-import TasksSection from '../components/sections/TasksSection'
-import WheelSection from '../components/sections/WheelSection'
-import ShopSection from '../components/sections/ShopSection'
-import BargainCard from '../components/sections/BargainCard'
-import ShakeCard from '../components/sections/ShakeCard'
-import RedPacketSection from '../components/sections/RedPacketSection'
+import ActivityEntries from '../components/sections/ActivityEntries'
+import { useNavigate } from 'react-router-dom'
+import { Check } from 'lucide-react'
+import { CoinIcon } from '../components/icons'
 
-/**
- * 桌面端（lg）：CSS Grid 网格区域布局，左 72% / 右 28%
- *   hero hero    signin
- *   chat chat    bargain
- *   quick quick  shake
- *   ads ads      member
- *   tasks tasks  redpacket
- *   wheel wheel  redpacket
- *   shop shop    redpacket
- * 移动端：flex 纵向 + order 排序（导航/Hero/对话/签到/砍一刀/摇一摇/广告/任务/转盘/商城/会员/红包雨）
- */
+/** 金币获取攻略小卡 */
+function EarnTips() {
+  const navigate = useNavigate()
+  const tips = [
+    { label: '每日签到', value: '+10 金币', path: '/tasks' },
+    { label: '每日任务', value: '最高 +130', path: '/tasks' },
+    { label: '摇一摇', value: '最高 +300', path: '/activities' },
+    { label: '幸运大转盘', value: '最高 +50', path: '/activities' },
+    { label: '红包雨', value: '一场 +40', path: '/activities' },
+  ]
+  return (
+    <section className="card p-5">
+      <h3 className="flex items-center gap-2 font-serif text-base font-bold text-ink">
+        <CoinIcon size={18} /> 今日金币攻略
+      </h3>
+      <div className="mt-3 space-y-1.5">
+        {tips.map((t) => (
+          <button
+            key={t.label}
+            onClick={() => navigate(t.path)}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-gold-soft/40"
+          >
+            <span className="flex h-4.5 w-4.5 h-[18px] w-[18px] items-center justify-center rounded-full bg-gold/20">
+              <Check size={10} strokeWidth={3.5} className="text-gold-deep" />
+            </span>
+            <span className="text-xs text-body">{t.label}</span>
+            <span className="ml-auto text-xs font-bold text-gold-deep tabular-nums">{t.value}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** 首页：品牌 Hero + 活动聚合入口 + 会员 */
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
-      <div className="home-grid">
-        <div className="area-hero order-1">
-          <Hero />
-        </div>
-        <div className="area-chat order-2">
-          <ChatSection />
-        </div>
-        <div className="area-quick order-2">
-          <QuickActions />
-        </div>
-        <div className="area-signin order-3">
-          <SignInCard />
-        </div>
-        <div className="area-bargain order-4">
-          <BargainCard />
-        </div>
-        <div className="area-shake order-5">
-          <ShakeCard />
-        </div>
-        <div className="area-ads order-6">
-          <AdsSection />
-        </div>
-        <div className="area-tasks order-7">
-          <TasksSection />
-        </div>
-        <div className="area-wheel order-8">
-          <WheelSection />
-        </div>
-        <div className="area-shop order-8">
-          <ShopSection />
-        </div>
-        <div className="area-member order-9">
+      <Hero />
+      <div className="mt-4 grid gap-4 lg:mt-[18px] lg:grid-cols-[1fr_380px] lg:gap-[18px]">
+        <ActivityEntries />
+        <div className="space-y-4">
           <MemberCard />
-        </div>
-        <div className="area-redpacket order-10 lg:self-stretch">
-          <RedPacketSection />
+          <EarnTips />
         </div>
       </div>
     </div>

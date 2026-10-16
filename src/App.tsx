@@ -8,7 +8,11 @@ import InviteModal from './components/layout/InviteModal'
 import ToastHost from './components/ui/ToastHost'
 import CoinFlyHost from './components/ui/CoinFlyHost'
 import HomePage from './pages/HomePage'
+import ChatPage from './pages/ChatPage'
 import PaintPage from './pages/PaintPage'
+import TasksPage from './pages/TasksPage'
+import ShopPage from './pages/ShopPage'
+import ActivitiesPage from './pages/ActivitiesPage'
 import AboutPage from './pages/AboutPage'
 import { useUserStore } from './store/useUserStore'
 
@@ -38,7 +42,11 @@ export default function App() {
         <main className="relative z-10">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/paint" element={<PaintPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/activities" element={<ActivitiesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="*" element={<HomePage />} />
           </Routes>

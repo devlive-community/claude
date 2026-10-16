@@ -18,7 +18,7 @@ import Modal from '../ui/Modal'
 import { useChatStore } from '../../store/useChatStore'
 import { useUserStore, FREE_CHATS_PER_DAY } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
-import { useSectionNav } from '../../lib/useSectionNav'
+import { useNavigate } from 'react-router-dom'
 import { generateReply } from '../../lib/mockAI'
 import { renderMarkdown } from '../../lib/markdown'
 import { cn } from '../../lib/utils'
@@ -27,7 +27,7 @@ import { ClaudeMark } from '../icons'
 const MODELS = ['Claude 国风特调 v1', 'Claude Sonnet 4.5', 'Claude Opus 4.1']
 
 function QuotaModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const go = useSectionNav()
+  const navigate = useNavigate()
   const openInvite = useUIStore((s) => s.openInvite)
   const options = [
     {
@@ -37,7 +37,7 @@ function QuotaModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       cls: 'text-[#4C6FA5] bg-[#EDF3FB]',
       onClick: () => {
         onClose()
-        go('ads')
+        navigate('/activities')
       },
     },
     {
@@ -57,7 +57,7 @@ function QuotaModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       cls: 'text-gold-deep bg-gold-soft',
       onClick: () => {
         onClose()
-        go('member')
+        navigate('/shop')
       },
     },
   ]
@@ -109,7 +109,7 @@ export default function ChatSection() {
   const setTaskDone = useUserStore((s) => s.setTaskDone)
 
   const pushToast = useUIStore((s) => s.pushToast)
-  const go = useSectionNav()
+  const navigate = useNavigate()
 
   const [web, setWeb] = useState(false)
   const [deep, setDeep] = useState(false)
@@ -372,7 +372,7 @@ export default function ChatSection() {
           </div>
         </div>
         <button
-          onClick={() => (remaining > 0 ? go('ads') : setQuotaOpen(true))}
+          onClick={() => (remaining > 0 ? navigate('/activities') : setQuotaOpen(true))}
           className="group flex items-center gap-1 text-xs text-cred transition hover:text-[#A31515]"
         >
           用完了？看广告、邀请好友或开通会员，继续畅聊

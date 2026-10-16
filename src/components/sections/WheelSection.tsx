@@ -135,10 +135,10 @@ export default function WheelSection() {
                 <div
                   key={p.label}
                   className="absolute left-1/2 top-1/2"
-                  style={{ transform: `rotate(${i * SEG + SEG / 2}deg) translateY(-104px)` }}
+                  style={{ transform: `rotate(${i * SEG + SEG / 2}deg) translateY(-104px) rotate(${-(i * SEG + SEG / 2)}deg)` }}
                 >
                   <div
-                    className={`flex -translate-x-1/2 -translate-y-1/2 flex-col items-center ${
+                    className={`flex flex-col items-center ${
                       i % 2 === 0 ? 'text-white' : 'text-[#5b3a10]'
                     }`}
                   >

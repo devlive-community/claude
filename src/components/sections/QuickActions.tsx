@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Code2, Coffee, GraduationCap, Palette, PenLine } from 'lucide-react'
 import { useChatStore } from '../../store/useChatStore'
-import { useSectionNav } from '../../lib/useSectionNav'
 
 const ACTIONS = [
   {
@@ -11,6 +10,7 @@ const ACTIONS = [
     icon: PenLine,
     cls: 'text-[#4C6FA5] bg-[#EDF3FB]',
     prompt: '帮我写一篇关于「秋天的第一杯奶茶」的朋友圈文案，要皮一点但要体面。',
+    to: '/chat',
   },
   {
     title: '代码编程',
@@ -18,6 +18,7 @@ const ACTIONS = [
     icon: Code2,
     cls: 'text-emerald-700 bg-emerald-50',
     prompt: '用 Python 写一个快速排序，带注释。',
+    to: '/chat',
   },
   {
     title: 'AI 绘画',
@@ -32,6 +33,7 @@ const ACTIONS = [
     icon: Coffee,
     cls: 'text-[#C07A2B] bg-[#FBF0DE]',
     prompt: '推荐一份成都三日游的美食攻略，预算友好，本地人常去的那种。',
+    to: '/chat',
   },
   {
     title: '学习辅导',
@@ -39,25 +41,25 @@ const ACTIONS = [
     icon: GraduationCap,
     cls: 'text-[#4C6FA5] bg-[#EDF3FB]',
     prompt: '用通俗的话解释一下什么是递归，最好举个例子。',
+    to: '/chat',
   },
 ]
 
 export default function QuickActions() {
   const setDraft = useChatStore((s) => s.setDraft)
-  const go = useSectionNav()
   const navigate = useNavigate()
 
   const onClick = (a: (typeof ACTIONS)[number]) => {
-    if (a.to) {
+    if (a.to && a.to !== '/chat') {
       navigate(a.to)
       return
     }
     setDraft(a.prompt!)
-    go('chat')
+    navigate('/chat')
   }
 
   return (
-    <section id="quick" className="area-quick order-3">
+    <section id="quick">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {ACTIONS.map((a, i) => {
           const Icon = a.icon

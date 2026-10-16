@@ -18,7 +18,6 @@ import SectionHeader from '../ui/SectionHeader'
 import Modal from '../ui/Modal'
 import { TASK_META, TASK_REWARDS, useUserStore, type TaskId } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
-import { useSectionNav } from '../../lib/useSectionNav'
 import { useNavigate } from 'react-router-dom'
 import { centerOf, cn } from '../../lib/utils'
 import { CoinIcon } from '../icons'
@@ -84,20 +83,19 @@ export default function TasksSection() {
   const pushToast = useUIStore((s) => s.pushToast)
   const flyCoins = useUIStore((s) => s.flyCoins)
   const openInvite = useUIStore((s) => s.openInvite)
-  const go = useSectionNav()
   const navigate = useNavigate()
   const [shareOpen, setShareOpen] = useState(false)
 
   const onAction = (id: TaskId) => {
     switch (id) {
       case 'sign':
-        go('signin')
+        document.getElementById('signin')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         break
       case 'chat':
-        go('chat')
+        navigate('/chat')
         break
       case 'ad':
-        go('ads')
+        navigate('/activities')
         break
       case 'share':
         setShareOpen(true)
@@ -124,7 +122,7 @@ export default function TasksSection() {
         title="每日任务 · 轻松赚金币"
         sub="完成任务即可获得金币奖励，金币可兑换对话次数或会员体验"
         right={
-          <button onClick={() => go('shop')} className="btn btn-ghost btn-sm">
+          <button onClick={() => navigate('/shop')} className="btn btn-ghost btn-sm">
             更多任务 <ChevronRight size={13} />
           </button>
         }
