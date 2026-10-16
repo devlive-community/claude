@@ -16,7 +16,7 @@ const CHIPS = [
   { label: '红包雨', id: 'redpacket' },
 ]
 
-/** 活动广场页：全部中国特色营销玩法 */
+/** 活动广场页：全部营销玩法 */
 export default function ActivitiesPage() {
   const [active, setActive] = useState('ads')
   const location = useLocation()
@@ -38,7 +38,7 @@ export default function ActivitiesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
+    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-5 md:px-6 md:pt-7">
       <PageHeader
         seal="活"
         title="活动广场"

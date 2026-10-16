@@ -26,10 +26,10 @@ export default function Footer() {
               <span className="text-brand">
                 <ClaudeMark size={26} />
               </span>
-              <span className="font-serif text-base font-bold text-ink">Claude 中国特色版</span>
+              <span className="font-serif text-base font-bold text-ink">Claude 中国版</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-faint">
-              如果 Claude 进入中国市场，并完全采用中国特色互联网产品的运营模式，它会变成什么样子？——
+              如果 Claude 入乡随俗，学会了签到、砍一刀、摇一摇、红包雨这一整套运营玩法，它会变成什么样子？——
               这是一个用来回答这个问题的娱乐模拟项目。
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function Footer() {
         </div>
 
         <p className="text-center text-[11px] text-faint">
-          © 2026 Claude 中国特色版 · 仅供娱乐与讽刺性创意表达 · Made with 国风 &amp; 热闹
+          © 2026 Claude 中国版 · 仅供娱乐与创意表达 · Made with 国风 &amp; 热闹
         </p>
       </div>
     </footer>

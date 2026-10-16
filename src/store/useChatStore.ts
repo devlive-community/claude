@@ -9,59 +9,125 @@ export interface ChatMessage {
   tag?: string
 }
 
-interface ChatState {
+export interface Conversation {
+  id: string
+  title: string
   messages: ChatMessage[]
+  ts: number
+}
+
+interface ChatState {
+  conversations: Conversation[]
+  activeId: string | null
   typing: boolean
   draft: string
+  newConversation: () => void
+  setActive: (id: string | null) => void
+  deleteConversation: (id: string) => void
+  renameFromFirstMessage: (content: string) => void
   addMsg: (m: Omit<ChatMessage, 'id' | 'ts'>) => void
   setTyping: (b: boolean) => void
   setDraft: (s: string) => void
-  clear: () => void
   updateLastAi: (content: string, tag?: string) => void
   removeLastAi: () => void
 }
 
 let seq = 0
 const nid = () => `m${Date.now()}_${seq++}`
-
-const greeting: ChatMessage = {
-  id: 'm-greeting',
-  role: 'ai',
-  ts: Date.now(),
-  content: `客官您好，我是 **Claude**，初来乍到，还请多多关照～
-
-在这里您可以：
-- 让我帮您**写文案、改邮件、出主意**
-- 让我帮您**写代码、查资料、讲知识**
-
-小提示：今日免费对话 10 次，用完了可以看广告、摇一摇、邀请好友来补充。祝您聊得开心！`,
-}
+const cid = () => `c${Date.now()}_${seq++}`
 
 export const useChatStore = create<ChatState>()(
   persist(
     (set) => ({
-      messages: [greeting],
+      conversations: [],
+      activeId: null,
       typing: false,
       draft: '',
-      addMsg: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: nid(), ts: Date.now() }] })),
-      setTyping: (b) => set({ typing: b }),
+
+      newConversation: () => set({ activeId: null, draft: '' }),
+
+      setActive: (activeId) => set({ activeId }),
+
+      deleteConversation: (id) =>
+        set((s) => {
+          const conversations = s.conversations.filter((c) => c.id !== id)
+          return { conversations, activeId: s.activeId === id ? null : s.activeId }
+        }),
+
+      renameFromFirstMessage: (content) =>
+        set((s) => ({
+          conversations: s.conversations.map((c) =>
+            c.id === s.activeId && c.messages.length <= 1
+              ? { ...c, title: content.slice(0, 20) || '新的对话' }
+              : c,
+          ),
+        })),
+
+      addMsg: (m) =>
+        set((s) => {
+          let conversations = s.conversations
+          let activeId = s.activeId
+          if (!activeId || !conversations.some((c) => c.id === activeId)) {
+            activeId = cid()
+            conversations = [{ id: activeId, title: '新的对话', messages: [], ts: Date.now() }, ...conversations]
+          }
+          conversations = conversations.map((c) =>
+            c.id === activeId ? { ...c, messages: [...c.messages, { ...m, id: nid(), ts: Date.now() }], ts: Date.now() } : c,
+          )
+          return { conversations, activeId }
+        }),
+
+      setTyping: (typing) => set({ typing }),
       setDraft: (draft) => set({ draft }),
-      clear: () => set({ messages: [] }),
+
       updateLastAi: (content, tag) =>
-        set((s) => {
-          const idx = [...s.messages].map((m) => m.role).lastIndexOf('ai')
-          if (idx < 0) return s
-          const messages = [...s.messages]
-          messages[idx] = { ...messages[idx], content, tag }
-          return { messages }
-        }),
+        set((s) => ({
+          conversations: s.conversations.map((c) => {
+            if (c.id !== s.activeId) return c
+            const idx = [...c.messages].map((m) => m.role).lastIndexOf('ai')
+            if (idx < 0) return c
+            const messages = [...c.messages]
+            messages[idx] = { ...messages[idx], content, tag }
+            return { ...c, messages }
+          }),
+        })),
+
       removeLastAi: () =>
-        set((s) => {
-          const idx = [...s.messages].map((m) => m.role).lastIndexOf('ai')
-          if (idx < 0) return s
-          return { messages: s.messages.filter((_, i) => i !== idx) }
-        }),
+        set((s) => ({
+          conversations: s.conversations.map((c) => {
+            if (c.id !== s.activeId) return c
+            const idx = [...c.messages].map((m) => m.role).lastIndexOf('ai')
+            if (idx < 0) return c
+            return { ...c, messages: c.messages.filter((_, i) => i !== idx) }
+          }),
+        })),
     }),
-    { name: 'claude-china-chat-v1', version: 1 },
+    {
+      name: 'claude-china-chat-v2',
+      version: 2,
+      migrate: (persisted: unknown) => {
+        // v1：单 messages 数组 → 迁移为一个会话
+        const old = persisted as { messages?: ChatMessage[] } | undefined
+        if (old?.messages?.length) {
+          const first = old.messages.find((m) => m.role === 'user')
+          return {
+            conversations: [
+              {
+                id: cid(),
+                title: first ? first.content.slice(0, 20) : '历史对话',
+                messages: old.messages,
+                ts: Date.now(),
+              },
+            ],
+            activeId: null,
+          }
+        }
+        return { conversations: [], activeId: null }
+      },
+    },
   ),
 )
+
+/** 当前激活会话的选择器 */
+export const selectActiveConversation = (s: ChatState) =>
+  s.conversations.find((c) => c.id === s.activeId) ?? null

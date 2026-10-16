@@ -68,7 +68,7 @@ export default function PaintPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
+    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-5 md:px-6 md:pt-7">
       <PageHeader
         seal="绘"
         title="AI 绘画"

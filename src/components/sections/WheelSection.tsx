@@ -177,7 +177,7 @@ export default function WheelSection() {
             <ul className="mt-2 space-y-1 text-xs leading-relaxed text-body">
               <li>· 每位客官每天 1 次免费抽奖机会，0 点刷新</li>
               <li>· 奖品：金币、AI 对话次数、1 天尊享会员（模拟权益）</li>
-              <li>· 「谢谢参与」概率极高，这很中国特色，请理性抽奖</li>
+              <li>· 「谢谢参与」概率极高，请理性抽奖</li>
               <li>· 中奖奖励自动发放，可在金币商城消费</li>
             </ul>
           </div>

@@ -6,7 +6,7 @@ import TaskLinksCard from '../components/sections/TaskLinksCard'
 /** 金币商城页 */
 export default function ShopPage() {
   return (
-    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
+    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-5 md:px-6 md:pt-7">
       <PageHeader
         seal="兑"
         title="金币商城"

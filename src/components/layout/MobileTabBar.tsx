@@ -3,11 +3,11 @@ import { Gift, House, ListChecks, MessageCircleMore, ShoppingBag as ShoppingBagI
 import { cn } from '../../lib/utils'
 
 const TABS = [
-  { label: '首页', icon: House, path: '/' },
-  { label: '对话', icon: MessageCircleMore, path: '/chat' },
+  { label: '对话', icon: MessageCircleMore, path: '/' },
   { label: '活动', icon: Gift, path: '/activities' },
   { label: '任务', icon: ListChecks, path: '/tasks' },
   { label: '商城', icon: ShoppingBagIcon, path: '/shop' },
+  { label: '绘画', icon: House, path: '/paint' },
 ]
 
 export default function MobileTabBar() {

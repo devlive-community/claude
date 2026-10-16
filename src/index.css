@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ============ Claude 中国特色版 · 设计令牌 ============ */
+/* ============ Claude 中国版 · 设计令牌 ============ */
 @theme {
   /* 画布与卡片 */
   --color-paper: #fff8ec;

@@ -8,7 +8,7 @@ import { useUIStore } from '../../store/useUIStore'
 import { centerOf, cn } from '../../lib/utils'
 import { CoinIcon } from '../icons'
 
-const ADS = [
+export const ADS = [
   { img: '/img/ad-1.jpg', title: 'AI 助手效率神器', sub: '学会这招，效率翻倍！', tag: '虚拟推广' },
   { img: '/img/ad-2.jpg', title: '限时福利大放送', sub: '超值好礼，限时领取！', tag: '虚构活动' },
   { img: '/img/ad-3.jpg', title: '办公学习工具合集', sub: '精选工具，提升效率！', tag: '虚构推荐' },
@@ -17,7 +17,7 @@ const ADS = [
 
 const AD_DURATION = 30
 
-function AdModal({
+export function AdModal({
   ad,
   onClose,
 }: {

@@ -5,7 +5,7 @@ import PageHeader from '../components/ui/PageHeader'
 /** 任务中心页：签到 + 每日任务 */
 export default function TasksPage() {
   return (
-    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
+    <div className="mx-auto max-w-[1180px] px-4 pb-14 pt-5 md:px-6 md:pt-7">
       <PageHeader
         seal="任"
         title="任务中心"

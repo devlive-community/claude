@@ -22,7 +22,7 @@ const STACK = ['React 19', 'TypeScript', 'Vite', 'Tailwind CSS v4', 'Framer Moti
 export default function AboutPage() {
   const navigate = useNavigate()
   return (
-    <div className="mx-auto max-w-[900px] px-4 pb-14 pt-20 md:px-6 md:pt-24">
+    <div className="mx-auto max-w-[900px] px-4 pb-14 pt-5 md:px-6 md:pt-7">
       <PageHeader seal="关" title="关于我们" sub="一个用来回答「如果 Claude 入乡随俗会怎样」的娱乐模拟项目" />
 
       <motion.section
@@ -34,9 +34,9 @@ export default function AboutPage() {
           <ClaudeMark size={38} />
         </span>
         <div>
-          <h2 className="font-serif text-lg font-bold text-ink">Claude 中国特色版是什么？</h2>
+          <h2 className="font-serif text-lg font-bold text-ink">Claude 中国版是什么？</h2>
           <p className="mt-2 text-sm leading-relaxed text-body">
-            如果 Claude 进入中国市场，并完全采用中国特色互联网产品的运营模式，它会变成什么样子？
+            如果 Claude 入乡随俗，学会了签到、砍一刀、摇一摇、红包雨这一整套运营玩法，它会变成什么样子？
             本站把这个脑洞做成了一个可以真正运行的网站：它既有 Claude 式的对话体验，
             又有砍一刀、摇一摇、看广告、领金币、签到、红包雨、大转盘、邀请好友、限时福利——
             每一样都似曾相识，每一样都在认真地搞笑。
