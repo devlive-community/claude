@@ -31,6 +31,7 @@ import { cn } from '../../lib/utils'
 import { ClaudeMark } from '../icons'
 import QuotaModal from './QuotaModal'
 import ForcedAdModal from './ForcedAdModal'
+import ShareModal from './ShareModal'
 
 /** 模型阵容（与官方 claude.ai 一致） */
 const MODELS = [
@@ -383,10 +384,11 @@ function MicMenu() {
 }
 
 /** 对话态顶部细条：左标题 / 右收藏+分享 */
-function ChatHeader({ title }: { title: string }) {
+function ChatHeader({ title, chatId }: { title: string; chatId: string }) {
   const pushToast = useUIStore((s) => s.pushToast)
   const collapsed = useUIStore((s) => s.sidebarCollapsed)
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
+  const [shareOpen, setShareOpen] = useState(false)
   return (
     <header className="flex h-12 flex-none items-center justify-between border-b border-black/[0.04] bg-paper/90 px-4 backdrop-blur">
       <div className="flex min-w-0 items-center gap-1">
@@ -416,12 +418,13 @@ function ChatHeader({ title }: { title: string }) {
           <Star size={15} />
         </button>
         <button
-          onClick={() => pushToast({ type: 'success', title: '分享链接已复制（模拟）' })}
+          onClick={() => setShareOpen(true)}
           className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[12.5px] font-medium text-body transition hover:bg-card-deep"
         >
           <Share2 size={12} /> 分享
         </button>
       </div>
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} chatId={chatId} />
     </header>
   )
 }
@@ -635,7 +638,7 @@ export default function ChatApp() {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       {/* 对话态顶部细条 */}
-      {inChatView && <ChatHeader title={conversation?.title ?? '新对话'} />}
+      {inChatView && <ChatHeader title={conversation?.title ?? '新对话'} chatId={conversation?.id ?? ''} />}
 
       {/* 上翻时：输入框上方居中浮动“滚到底部”按钮（claude.ai 同款） */}
       {hasMessages && !atBottom && (
