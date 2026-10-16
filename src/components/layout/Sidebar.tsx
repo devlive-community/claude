@@ -154,6 +154,7 @@ export default function Sidebar({
 }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const pushToast = useUIStore((s) => s.pushToast)
   const conversations = useChatStore((s) => s.conversations)
   const activeId = useChatStore((s) => s.activeId)
   const newConversation = useChatStore((s) => s.newConversation)
@@ -241,10 +242,16 @@ export default function Sidebar({
           return (
             <button
               key={w.label}
-              onClick={() => go(w.path)}
+              onClick={() =>
+                loggedIn
+                  ? go(w.path)
+                  : pushToast({ type: 'warn', title: '需要登录后使用', desc: '签到、商城、活动玩法都需要登录（模拟账号）' })
+              }
+              title={loggedIn ? undefined : '需要登录后使用'}
               className={cn(
-                'flex w-full items-center gap-2.5 rounded-lg px-2 py-[6px] text-left text-[13px] transition hover:bg-black/[0.05]',
+                'flex w-full items-center gap-2.5 rounded-lg px-2 py-[6px] text-left text-[13px] transition',
                 location.pathname === w.path ? 'bg-black/[0.07] font-medium text-ink' : 'text-body',
+                !loggedIn ? 'cursor-not-allowed opacity-45' : 'hover:bg-black/[0.05]',
               )}
             >
               <Icon size={15} className="text-faint" />

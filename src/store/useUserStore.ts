@@ -174,9 +174,11 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      addCoins: (n) => set((s) => ({ coins: s.coins + n })),
+      // 金币账号隔离：未登录时收益不入账（UI 层另有拦截提示）
+      addCoins: (n) => set((s) => ({ coins: s.loggedIn ? s.coins + n : s.coins })),
 
       spendCoins: (n) => {
+        if (!get().loggedIn) return false
         if (get().coins >= n) {
           set((s) => ({ coins: s.coins - n }))
           return true
