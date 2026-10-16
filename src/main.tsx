@@ -6,7 +6,6 @@ import '@fontsource/noto-sans-sc/700.css'
 import '@fontsource/noto-serif-sc/600.css'
 import '@fontsource/noto-serif-sc/700.css'
 import '@fontsource/noto-serif-sc/900.css'
-import '@fontsource/ma-shan-zheng/400.css'
 import './index.css'
 import App from './App'
 

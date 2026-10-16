@@ -142,7 +142,7 @@ function RainOverlay({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <p className="absolute inset-x-0 top-16 z-10 text-center font-brush text-xl text-white/85">
+      <p className="absolute inset-x-0 top-16 z-10 text-center font-serif text-lg font-semibold text-white/85">
         点击屏幕，让红包飞一会儿！
       </p>
 
@@ -272,26 +272,6 @@ export default function RedPacketSection() {
       id="redpacket"
       className="promo-bg relative flex h-full flex-col overflow-hidden rounded-2xl border border-cred-deep/40 p-5 shadow-red"
     >
-      {/* 飘落红包装饰 */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        {[
-          { left: '12%', delay: '0s', dur: '5.5s', size: 26 },
-          { left: '78%', delay: '1.2s', dur: '6.5s', size: 20 },
-          { left: '46%', delay: '2.4s', dur: '7s', size: 16 },
-        ].map((r, i) => (
-          <motion.span
-            key={i}
-            className="absolute flex items-center justify-center rounded-md border border-[#F5D98B]/60 bg-[#C62828] font-serif text-[10px] font-bold text-[#F5D98B]"
-            style={{ left: r.left, width: r.size, height: r.size * 1.35, top: -40 }}
-            animate={{ y: ['0vh', '115vh'], rotate: [0, 16, -12, 8, 0] }}
-            transition={{ duration: parseFloat(r.dur), delay: parseFloat(r.delay), repeat: Infinity, ease: 'linear' }}
-          >
-            福
-          </motion.span>
-        ))}
-        <span className="absolute -right-12 top-1/4 h-40 w-40 rounded-full bg-white/8" />
-      </div>
-
       <div className="relative">
         <div className="flex items-center gap-2.5">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15">
@@ -307,7 +287,7 @@ export default function RedPacketSection() {
             </p>
           </div>
         </div>
-        <p className="mt-3 font-brush text-xl leading-relaxed text-[#F7D9A8]">点击屏幕，让红包飞一会儿！</p>
+        <p className="mt-3 font-serif text-lg font-semibold text-[#F7D9A8]">点击屏幕，让红包飞一会儿！</p>
         <p className="mt-1 text-[11px] leading-relaxed text-white/70">
           15 秒红包雨，手快有手慢无。红包内含 1 / 5 / 10 / 20 金币，也有一部分是「谢谢参与」——毕竟要有惊喜才叫红包雨。
         </p>

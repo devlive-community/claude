@@ -101,9 +101,7 @@ export default function ShakeCard() {
             <CoinIcon size={c.size} />
           </motion.span>
         ))}
-        <span className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/8" />
-        <span className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-black/10" />
-      </div>
+              </div>
 
       <div className="relative">
         <h2 className="font-serif text-lg font-bold text-[#FFF8EC]">摇一摇 · 随机领金币</h2>

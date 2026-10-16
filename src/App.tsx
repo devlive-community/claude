@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
-import InkBackground from './components/InkBackground'
 import AppShell from './components/layout/AppShell'
 import HomePage from './pages/HomePage'
 import PaintPage from './pages/PaintPage'
@@ -30,8 +29,6 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <div className="relative min-h-screen">
-        <InkBackground />
-        <div className="paper-noise" aria-hidden />
         <AppShell>
           <Routes>
             <Route path="/" element={<HomePage />} />

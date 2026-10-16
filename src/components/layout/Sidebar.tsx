@@ -52,7 +52,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
   }
 
   const content = (
-    <div className="flex h-full flex-col bg-[#F7EFDF]/95 backdrop-blur-xl lg:bg-[#F7EFDF]/70">
+    <div className="flex h-full flex-col bg-[#F0EEE6]/95 backdrop-blur-xl lg:bg-[#F0EEE6]/80">
       {/* 品牌区 */}
       <div className="flex items-center gap-2.5 px-4 pb-3 pt-4">
         <span className="text-brand">

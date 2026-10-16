@@ -49,21 +49,19 @@ export default function MemberCard() {
               'radial-gradient(130% 70% at 80% 0%, rgba(212,162,76,0.28), transparent 55%), radial-gradient(120% 80% at 0% 100%, rgba(217,119,87,0.15), transparent 50%)',
           }}
         />
-        <div className="absolute -right-8 -top-8 h-32 w-32 rotate-45 border border-gold/20" />
-        <div className="absolute -bottom-10 -left-10 h-36 w-36 rotate-45 border border-gold/10" />
       </div>
 
       <div className="relative flex items-start gap-3">
         <motion.span
           animate={{ rotate: [0, -8, 8, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-[#F2CF8D] to-[#B8862F] shadow-gold"
+          className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-[#E8956E] to-[#BD5D3E] shadow-red"
         >
-          <Crown size={22} className="text-[#5b3a10]" />
+          <Crown size={22} className="text-white" />
         </motion.span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="gold-text font-serif text-lg font-bold">Claude 尊享会员</h2>
+            <h2 className="font-serif text-lg font-bold text-[#F5D98B]">Claude 尊享会员</h2>
             <span className="rounded-md bg-gradient-to-br from-[#F04438] to-[#B91C1C] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-red">
               限时特惠
             </span>

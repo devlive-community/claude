@@ -1,45 +1,44 @@
 @import "tailwindcss";
 
-/* ============ Claude 中国版 · 设计令牌 ============ */
+/* ============ Claude 中国版 · 设计令牌（Claude 官网风格） ============ */
 @theme {
-  /* 画布与卡片 */
-  --color-paper: #fff8ec;
-  --color-card: #fff4e5;
-  --color-card-deep: #fbeed7;
-  --color-line: #e8d3b3;
+  /* 画布与卡片：claude.ai 的暖白 / 燕麦色 */
+  --color-paper: #faf9f5;
+  --color-card: #ffffff;
+  --color-card-deep: #f5f4ef;
+  --color-line: #e8e5dd;
 
-  /* 品牌 */
+  /* 品牌橙 */
   --color-brand: #d97757;
-  --color-brand-deep: #c05a3b;
-  --color-brand-soft: #f3d9c8;
+  --color-brand-deep: #bd5d3e;
+  --color-brand-soft: #f4e8e1;
 
-  /* 营销红金 */
+  /* 营销红（活动专用） */
   --color-cred: #c62828;
   --color-cred-deep: #8e1b1b;
-  --color-cred-soft: #fbe3e0;
-  --color-gold: #d4a24c;
-  --color-gold-deep: #b8862f;
-  --color-gold-soft: #f7ead0;
+  --color-cred-soft: #fbe9e7;
+  --color-gold: #c9a24b;
+  --color-gold-deep: #a07d2e;
+  --color-gold-soft: #f6efdd;
 
   /* 文字 */
-  --color-ink: #382015;
-  --color-body: #574638;
-  --color-faint: #8a7663;
+  --color-ink: #1f1e1d;
+  --color-body: #3d3d3a;
+  --color-faint: #8b897f;
 
-  /* 会员黑金 */
-  --color-member: #221914;
-  --color-member-2: #322419;
+  /* 会员深色 */
+  --color-member: #1f1e1d;
+  --color-member-2: #2d2c2a;
 
   /* 字体 */
   --font-sans: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --font-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --font-brush: "Ma Shan Zheng", "Noto Serif SC", serif;
+  --font-serif: "Noto Serif SC", "Songti SC", serif;
 
   /* 阴影 */
-  --shadow-soft: 0 8px 30px rgba(56, 32, 21, 0.08);
-  --shadow-lift: 0 14px 40px rgba(56, 32, 21, 0.16);
-  --shadow-red: 0 6px 18px rgba(198, 40, 40, 0.32);
-  --shadow-gold: 0 6px 18px rgba(212, 162, 76, 0.35);
+  --shadow-soft: 0 2px 12px rgba(31, 30, 29, 0.06);
+  --shadow-lift: 0 10px 32px rgba(31, 30, 29, 0.12);
+  --shadow-red: 0 4px 14px rgba(198, 40, 40, 0.28);
+  --shadow-gold: 0 4px 14px rgba(201, 162, 75, 0.3);
 }
 
 /* ============ 基础 ============ */
@@ -53,12 +52,12 @@
     color: var(--color-body);
     font-family: var(--font-sans);
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
   ::selection {
-    background: rgba(217, 119, 87, 0.28);
+    background: rgba(217, 119, 87, 0.22);
     color: var(--color-ink);
   }
   input,
@@ -70,7 +69,6 @@
 
 /* ============ 组件 ============ */
 @layer components {
-  /* 卡片 */
   .card {
     background: var(--color-card);
     border: 1px solid var(--color-line);
@@ -106,38 +104,36 @@
     transform: scale(0.96);
   }
   .btn:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: not-allowed;
     transform: none;
   }
   .btn-red {
     color: #fff;
-    background: linear-gradient(135deg, #f04438, #b91c1c);
+    background: linear-gradient(135deg, #e2493b, #b91c1c);
     box-shadow: var(--shadow-red);
   }
   .btn-red:hover:not(:disabled) {
-    filter: brightness(1.07);
+    filter: brightness(1.06);
     transform: translateY(-1px);
-    box-shadow: 0 10px 26px rgba(198, 40, 40, 0.42);
   }
   .btn-gold {
-    color: #5b3a10;
-    background: linear-gradient(135deg, #f2cf8d, #d4a24c 55%, #c08f36);
+    color: #4a3a10;
+    background: linear-gradient(135deg, #ecc978, #c9a24b 60%, #b18a35);
     box-shadow: var(--shadow-gold);
   }
   .btn-gold:hover:not(:disabled) {
-    filter: brightness(1.05);
+    filter: brightness(1.04);
     transform: translateY(-1px);
   }
   .btn-ghost {
     color: var(--color-body);
-    background: rgba(255, 251, 242, 0.8);
+    background: var(--color-card);
     border: 1px solid var(--color-line);
   }
   .btn-ghost:hover:not(:disabled) {
-    border-color: var(--color-gold);
-    color: var(--color-ink);
-    background: var(--color-gold-soft);
+    border-color: var(--color-brand);
+    color: var(--color-brand-deep);
   }
   .btn-sm {
     height: 32px;
@@ -151,7 +147,7 @@
     border-radius: 14px;
   }
 
-  /* 红色印章标题块 */
+  /* 区块标记（小方块，代替旧印章） */
   .seal {
     display: inline-flex;
     align-items: center;
@@ -159,85 +155,39 @@
     flex: none;
     width: 30px;
     height: 30px;
-    border-radius: 7px;
-    background: linear-gradient(135deg, #d0342c, #a31515);
-    color: #fff4e5;
-    font-family: var(--font-serif);
+    border-radius: 8px;
+    background: var(--color-brand);
+    color: #fff;
     font-weight: 700;
-    font-size: 15px;
-    box-shadow: 0 2px 8px rgba(163, 21, 21, 0.35);
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(189, 93, 62, 0.35);
   }
 
-  /* 金色渐变文字 */
-  .gold-text {
-    background: linear-gradient(120deg, #f5d98b, #d4a24c 45%, #f0c264);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* 宣纸噪点 */
-  .paper-noise {
-    position: fixed;
-    inset: 0;
-    z-index: 4;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* 营销红底 */
+  /* 活动红底（营销卡片用） */
   .promo-bg {
     background:
-      radial-gradient(120% 90% at 85% -10%, rgba(255, 200, 120, 0.22), transparent 55%),
-      linear-gradient(135deg, #d0342c, #b91c1c 55%, #8e1b1b);
+      radial-gradient(120% 90% at 85% -10%, rgba(255, 255, 255, 0.14), transparent 55%),
+      linear-gradient(135deg, #d8453a, #b91c1c 60%, #9e1a1a);
   }
 
-  /* 首页桌面网格（72 / 28 双栏） */
+  /* 首页网格（未再使用，保留兼容） */
   .home-grid {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
-  @media (min-width: 1024px) {
-    .home-grid {
-      display: grid;
-      gap: 18px;
-      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.02fr) 380px;
-      grid-template-areas:
-        "hero hero signin"
-        "chat chat bargain"
-        "quick quick shake"
-        "ads ads member"
-        "tasks tasks redpacket"
-        "wheel wheel redpacket"
-        "shop shop redpacket";
-      align-items: start;
-    }
-    .area-hero { grid-area: hero; }
-    .area-signin { grid-area: signin; }
-    .area-chat { grid-area: chat; }
-    .area-bargain { grid-area: bargain; }
-    .area-quick { grid-area: quick; }
-    .area-shake { grid-area: shake; }
-    .area-ads { grid-area: ads; }
-    .area-member { grid-area: member; }
-    .area-tasks { grid-area: tasks; }
-    .area-redpacket { grid-area: redpacket; }
-    .area-wheel { grid-area: wheel; }
-    .area-shop { grid-area: shop; }
-  }
 
-  /* 纤细滚动条 */
+  /* 滚动条 */
   .nice-scroll {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-line) transparent;
+    scrollbar-color: #dcd8cd transparent;
   }
   .nice-scroll::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   .nice-scroll::-webkit-scrollbar-thumb {
-    background: var(--color-line);
+    background: #dcd8cd;
     border-radius: 3px;
   }
   .nice-scroll::-webkit-scrollbar-track {
@@ -251,30 +201,10 @@
   }
 }
 
-/* ============ 动画 ============ */
-@keyframes sway {
-  0%, 100% { transform: rotate(-3.5deg); }
-  50% { transform: rotate(3.5deg); }
+/* 锚点定位偏移 */
+section[id] {
+  scroll-margin-top: 76px;
 }
-@keyframes floaty {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
-}
-@keyframes blink-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.anim-sway { animation: sway 4s ease-in-out infinite; transform-origin: top center; }
-.anim-floaty { animation: floaty 5s ease-in-out infinite; }
-.anim-blink { animation: blink-dot 1.6s ease-in-out infinite; }
 
 /* 对话输入区功能小按钮 */
 .chip-toggle {
@@ -293,8 +223,8 @@
   transition: all 0.18s ease;
 }
 .chip-toggle:hover {
-  border-color: var(--color-gold);
-  color: var(--color-gold-deep);
+  border-color: var(--color-brand);
+  color: var(--color-brand-deep);
 }
 .chip-on {
   background: rgba(217, 119, 87, 0.12);
@@ -303,7 +233,13 @@
   font-weight: 600;
 }
 
-/* 锚点定位时为固定导航栏留出空间 */
-section[id] {
-  scroll-margin-top: 76px;
+/* ============ 动画 ============ */
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
 }
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.anim-blink { animation: blink-dot 1.6s ease-in-out infinite; }

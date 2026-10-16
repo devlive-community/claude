@@ -32,18 +32,18 @@ export default function SignInCard() {
   return (
     <section id="signin" className="card flex flex-col overflow-hidden">
       {/* 红金标题带 */}
-      <div className="promo-bg px-5 pb-4 pt-5">
+      <div className="border-b border-line bg-card-deep/60 px-5 pb-4 pt-5">
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
             <CoinIcon size={22} />
           </span>
           <div>
-            <h2 className="font-serif text-lg font-bold text-[#FFF8EC]">每日签到</h2>
-            <p className="text-[11px] text-[#F7D9A8]/90">连续签到赢金币，好礼不断</p>
+            <h2 className="font-serif text-lg font-bold text-ink">每日签到</h2>
+            <p className="text-[11px] text-faint">连续签到赢金币，好礼不断</p>
           </div>
           <div className="ml-auto text-right">
-            <p className="text-[10px] text-[#F7D9A8]/80">连续签到</p>
-            <p className="font-serif text-xl font-bold leading-none text-white">
+            <p className="text-[10px] text-faint">连续签到</p>
+            <p className="font-serif text-xl font-bold leading-none text-cred">
               <AnimatedNumber value={streak} />
               <span className="ml-0.5 text-[11px] font-normal">天</span>
             </p>

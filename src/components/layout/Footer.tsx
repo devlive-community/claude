@@ -1,6 +1,5 @@
 import { ShieldAlert } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { InkScrollFooter } from '../InkBackground'
 import { ClaudeMark } from '../icons'
 
 const LINKS = [
@@ -17,9 +16,8 @@ const EVENTS = ['看广告解锁对话', '红包雨限时开启', '摇一摇领�
 export default function Footer() {
   const navigate = useNavigate()
   return (
-    <footer className="relative z-10">
-      <InkScrollFooter />
-      <div className="mx-auto max-w-[1440px] px-4 pb-28 md:px-6 lg:pb-8">
+    <footer className="relative z-10 mt-10 border-t border-line bg-white/60">
+      <div className="mx-auto max-w-[1180px] px-4 py-10 md:px-6">
         <div className="card mb-5 grid gap-6 p-6 md:grid-cols-3 md:p-8">
           <div>
             <div className="flex items-center gap-2.5">
