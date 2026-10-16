@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  ArrowDown,
   ArrowUp,
   AudioLines,
   Check,
@@ -452,6 +453,17 @@ export default function ChatApp() {
   const fileRef = useRef<HTMLInputElement>(null)
   const taRef = useRef<HTMLTextAreaElement>(null)
   const timerRef = useRef<number | null>(null)
+  const [atBottom, setAtBottom] = useState(true)
+  const atBottomRef = useRef(true)
+
+  /** 滚动监听：距底 40px 内视为在底部；上翻时显示回底按钮且不再自动跟随 */
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+    atBottomRef.current = bottom
+    setAtBottom(bottom)
+  }, [])
 
   /** 当前会话：/chat/:id 由 URL 派生；/new 跟随 activeId */
   const conversation = useMemo(
@@ -488,7 +500,7 @@ export default function ChatApp() {
 
   useEffect(() => {
     const el = scrollRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    if (el && atBottomRef.current) el.scrollTop = el.scrollHeight
   }, [messages, typing])
 
   /** 输入框自适应高度 */
@@ -596,6 +608,20 @@ export default function ChatApp() {
       {/* 对话态顶部细条 */}
       {hasMessages && <ChatHeader title={conversation?.title ?? '新对话'} />}
 
+      {/* 上翻时：输入框上方居中浮动“滚到底部”按钮（claude.ai 同款） */}
+      {hasMessages && !atBottom && (
+        <button
+          onClick={() => {
+            const el = scrollRef.current
+            if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+          }}
+          className="absolute bottom-[118px] left-1/2 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-white text-ink shadow-lift transition hover:bg-[#F0EEE6] hover:shadow-none"
+          aria-label="滚动到最下面"
+        >
+          <ArrowDown size={18} />
+        </button>
+      )}
+
       {/* 空态折叠后：主区左上角展开按钮（桌面端） */}
       {!hasMessages && collapsed && (
         <button
@@ -669,7 +695,7 @@ export default function ChatApp() {
       ) : (
         <>
           {/* 消息线程：AI 通栏 markdown，用户右对齐浅灰气泡 */}
-          <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
+          <div ref={scrollRef} onScroll={handleScroll} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
             {messages.map((m) =>
               m.role === 'user' ? (
