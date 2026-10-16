@@ -13,6 +13,7 @@ import {
   Copy,
   Loader2,
   Mic,
+  MonitorPlay,
   PanelLeft,
   Plus,
   RefreshCw,
@@ -450,10 +451,12 @@ export default function ChatApp() {
   const [model, setModel] = useState('Opus 5.5')
   const [file, setFile] = useState<string | null>(null)
   const [quotaOpen, setQuotaOpen] = useState(false)
-  /** 未登录发送：先看 10 秒广告解锁本次 */
+  /** 未登录发送：对话流内提示卡片，用户点击后才看 10 秒广告解锁 */
   const [forcedAd, setForcedAd] = useState(false)
+  const [pendingNotice, setPendingNotice] = useState(false)
   const pendingRef = useRef<string | null>(null)
   const adUnlockedRef = useRef(false)
+  const loggedIn = useUserStore((s) => s.loggedIn)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -478,6 +481,8 @@ export default function ChatApp() {
   )
   const messages = conversation?.messages ?? []
   const hasMessages = messages.length > 0
+  /** 对话视图：已有消息 或 存在待解锁的挂起消息 */
+  const inChatView = hasMessages || pendingNotice
   const lastAiId = [...messages].reverse().find((m) => m.role === 'ai')?.id
 
   /** 路由同步：/new 保证空会话；/chat/:id 激活对应会话（无效则回 /new） */
@@ -537,10 +542,10 @@ export default function ChatApp() {
     (raw?: string) => {
       const content = (raw ?? draft).trim()
       if (!content || useChatStore.getState().typing) return
-      // 未登录：先观看 10 秒广告，解锁本次发送（奖励 1 次）
+      // 未登录：在对话流中显示解锁提示卡片，用户点击后才看广告
       if (!useUserStore.getState().loggedIn && !adUnlockedRef.current) {
         pendingRef.current = content
-        setForcedAd(true)
+        setPendingNotice(true)
         return
       }
       adUnlockedRef.current = false
@@ -575,6 +580,17 @@ export default function ChatApp() {
     const reply = generateReply(lastUser.content, { web: true, deep })
     window.setTimeout(() => stream(reply), 500)
   }, [removeLastAi, setTyping, stream])
+
+  /** 登录成功后自动发送挂起的对话（免广告） */
+  useEffect(() => {
+    if (loggedIn && pendingNotice) {
+      setPendingNotice(false)
+      const c = pendingRef.current
+      pendingRef.current = null
+      if (c) send(c)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loggedIn, pendingNotice])
 
   const pickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
@@ -619,7 +635,7 @@ export default function ChatApp() {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       {/* 对话态顶部细条 */}
-      {hasMessages && <ChatHeader title={conversation?.title ?? '新对话'} />}
+      {inChatView && <ChatHeader title={conversation?.title ?? '新对话'} />}
 
       {/* 上翻时：输入框上方居中浮动“滚到底部”按钮（claude.ai 同款） */}
       {hasMessages && !atBottom && (
@@ -636,7 +652,7 @@ export default function ChatApp() {
       )}
 
       {/* 空态折叠后：主区左上角展开按钮（桌面端） */}
-      {!hasMessages && collapsed && (
+      {!inChatView && collapsed && (
         <button
           onClick={() => setSidebarCollapsed(false)}
           className="absolute left-3 top-3 z-20 hidden h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5 lg:flex"
@@ -647,7 +663,7 @@ export default function ChatApp() {
       )}
 
       {/* 空态：问候 + 输入卡 + 卡外行整体屏幕居中（claude.ai 同款） */}
-      {!hasMessages ? (
+      {!inChatView ? (
         <div className="nice-scroll flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-8">
           <div className="w-full max-w-3xl">
             <motion.div
@@ -739,6 +755,41 @@ export default function ChatApp() {
                 </div>
               ),
             )}
+            {pendingNotice && (
+              <>
+                {/* 待解锁的用户消息（半透明待发送态） */}
+                <div className="flex justify-end opacity-60">
+                  <div className="max-w-[80%] rounded-2xl bg-[#F0EEE6] px-4 py-3 text-[14px] leading-relaxed text-ink">
+                    {pendingRef.current}
+                  </div>
+                </div>
+                {/* 解锁提示卡片：用户点击后才播放广告 */}
+                <div className="rounded-2xl border border-line bg-white p-4 shadow-soft">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-[#EDF3FB] text-[#4C6FA5]">
+                      <MonitorPlay size={19} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[14px] font-semibold text-ink">本次对话需要看广告解锁</p>
+                      <p className="mt-0.5 text-[12.5px] leading-relaxed text-faint">
+                        观看一段 10 秒模拟广告即可解锁本次发送；登录后无需看广告。
+                      </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button onClick={() => setForcedAd(true)} className="btn btn-red">
+                          <MonitorPlay size={14} /> 看广告解锁
+                        </button>
+                        <button
+                          onClick={() => window.dispatchEvent(new CustomEvent('open-login-modal'))}
+                          className="rounded-full border border-line bg-white px-3.5 py-2 text-[12.5px] font-medium text-body transition hover:bg-card-deep"
+                        >
+                          登录后免广告
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="h-2" />
             </div>
           </div>
@@ -821,6 +872,7 @@ export default function ChatApp() {
           grantChats(1)
           adUnlockedRef.current = true
           setForcedAd(false)
+          setPendingNotice(false)
           const c = pendingRef.current
           pendingRef.current = null
           if (c) send(c)

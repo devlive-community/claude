@@ -257,20 +257,13 @@ export default function Sidebar({
         })}
       </div>
 
-      {/* Recents */}
+      {/* 最近（未登录不展示历史模块） */}
+      {loggedIn && (
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-3 nice-scroll">
         <div className="flex items-center justify-between px-2 pb-1">
           <p className="text-[11px] font-medium text-faint">最近</p>
           <CoinIcon size={13} className="opacity-50" />
         </div>
-        {!loggedIn ? (
-          <div className="rounded-xl border border-dashed border-line bg-white/50 px-3 py-4 text-center">
-            <p className="text-xs text-faint">登录后可查看历史记录</p>
-            <button onClick={() => setLoginOpen(true)} className="mt-2 text-[11px] font-semibold text-brand hover:underline">
-              登录 / 注册
-            </button>
-          </div>
-        ) : (
         <div className="space-y-px">
           {filtered.length === 0 && <p className="px-2 py-1.5 text-xs text-faint/70">暂无对话</p>}
           {filtered.map((c) => (
@@ -302,12 +295,12 @@ export default function Sidebar({
             </div>
           ))}
         </div>
-        )}
 
       </div>
+      )}
 
-      {/* 底部账户 */}
-      <div className="relative border-t border-black/[0.06] p-2.5">
+      {/* 底部账户（始终贴底） */}
+      <div className="relative mt-auto border-t border-black/[0.06] p-2.5">
         <AccountMenu open={accountOpen} onClose={() => setAccountOpen(false)} />
         <button
           onClick={() => (loggedIn ? setAccountOpen((v) => !v) : setLoginOpen(true))}
