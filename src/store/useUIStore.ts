@@ -31,9 +31,15 @@ interface UIState {
   inviteMode: 'bargain' | 'chats'
   openInvite: (mode: 'bargain' | 'chats') => void
   closeInvite: () => void
+
+  sidebarCollapsed: boolean
+  setSidebarCollapsed: (v: boolean) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
+  sidebarCollapsed: false,
+  setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
+
   toasts: [],
   pushToast: (t) => {
     const id = ++uid

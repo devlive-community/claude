@@ -5,12 +5,14 @@ import Sidebar from './Sidebar'
 import InviteModal from './InviteModal'
 import ToastHost from '../ui/ToastHost'
 import CoinFlyHost from '../ui/CoinFlyHost'
+import { useUIStore } from '../../store/useUIStore'
 
 
 /** 应用外壳：与 claude.ai 一致 —— 侧栏承载一切，无顶栏、无页脚 */
 export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const collapsed = useUIStore((s) => s.sidebarCollapsed)
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
   const location = useLocation()
   const navigate = useNavigate()
   const isChatHome = location.pathname === '/'
@@ -21,13 +23,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
         open={sidebarOpen}
         collapsed={collapsed}
         onClose={() => setSidebarOpen(false)}
-        onCollapse={() => setCollapsed(true)}
+        onCollapse={() => setSidebarCollapsed(true)}
       />
 
-      {/* 折叠后：主区左上角悬浮展开按钮（桌面端，claude.ai 同款位置） */}
-      {collapsed && (
+      {/* 折叠后：子页面主区左上角悬浮展开按钮（桌面端；对话态/空态由 ChatApp 内部处理） */}
+      {collapsed && !isChatHome && (
         <button
-          onClick={() => setCollapsed(false)}
+          onClick={() => setSidebarCollapsed(false)}
           className="fixed left-3 top-3 z-40 hidden h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5 lg:flex"
           aria-label="展开侧栏"
         >
@@ -62,6 +64,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         className={
           'transition-[padding] duration-200 ' +
           (collapsed ? '' : 'lg:pl-[248px] ') +
+          (collapsed && !isChatHome ? 'lg:pt-12 ' : '') +
           (isChatHome
             ? 'flex min-h-[calc(100vh-52px)] flex-col lg:min-h-screen'
             : 'min-h-[calc(100vh-52px)] lg:min-h-screen')

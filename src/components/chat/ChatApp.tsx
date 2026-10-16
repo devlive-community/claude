@@ -13,6 +13,7 @@ import {
   Check,
   Star,
   Share2,
+  PanelLeft,
 } from 'lucide-react'
 import { useChatStore, selectActiveConversation } from '../../store/useChatStore'
 import { useUserStore, FREE_CHATS_PER_DAY } from '../../store/useUserStore'
@@ -107,15 +108,28 @@ function ModelPicker({ model, onPick }: { model: string; onPick: (m: string) => 
 /** 对话态顶部细条：左标题 / 右收藏+分享 */
 function ChatHeader({ title }: { title: string }) {
   const pushToast = useUIStore((s) => s.pushToast)
+  const collapsed = useUIStore((s) => s.sidebarCollapsed)
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
   return (
     <header className="flex h-12 flex-none items-center justify-between border-b border-black/[0.04] bg-paper/90 px-4 backdrop-blur">
-      <button
+      <div className="flex min-w-0 items-center gap-1">
+        {collapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(false)}
+            className="hidden h-9 w-9 flex-none items-center justify-center rounded-lg text-body transition hover:bg-black/5 lg:flex"
+            aria-label="展开侧栏"
+          >
+            <PanelLeft size={17} />
+          </button>
+        )}
+        <button
         onClick={() => pushToast({ type: 'info', title: '会话设置（模拟功能）' })}
-        className="flex min-w-0 items-center gap-1 text-[13.5px] font-medium text-body transition hover:text-ink"
+        className="flex min-w-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium text-ink transition hover:bg-black/[0.05]"
       >
         <span className="max-w-[55vw] truncate">{title}</span>
         <ChevronDown size={13} className="flex-none text-faint" />
       </button>
+      </div>
       <div className="flex flex-none items-center gap-1">
         <button
           onClick={() => pushToast({ type: 'success', title: '已收藏该对话（模拟）' })}
@@ -150,6 +164,8 @@ export default function ChatApp() {
   const consumeChat = useUserStore((s) => s.consumeChat)
   const setTaskDone = useUserStore((s) => s.setTaskDone)
   const pushToast = useUIStore((s) => s.pushToast)
+  const collapsed = useUIStore((s) => s.sidebarCollapsed)
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
 
   const [web, setWeb] = useState(false)
   const [deep, setDeep] = useState(false)
@@ -166,6 +182,13 @@ export default function ChatApp() {
   const hasMessages = messages.length > 0
   const lastAiId = [...messages].reverse().find((m) => m.role === 'ai')?.id
 
+
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages, typing])
+
   useEffect(() => {
     setTyping(false)
     return () => {
@@ -174,10 +197,10 @@ export default function ChatApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /** 浏览器标签页标题：新对话 - Claude / 对话名字 - Claude */
   useEffect(() => {
-    const el = scrollRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [messages, typing])
+    document.title = hasMessages ? `${conversation?.title ?? '新对话'} - Claude` : '新对话 - Claude'
+  }, [hasMessages, conversation?.title])
 
   /** 输入框自适应高度 */
   useEffect(() => {
@@ -260,9 +283,20 @@ export default function ChatApp() {
   )
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-1 flex-col">
       {/* 对话态顶部细条 */}
       {hasMessages && <ChatHeader title={conversation?.title ?? '新对话'} />}
+
+      {/* 空态折叠后：主区左上角展开按钮（桌面端） */}
+      {!hasMessages && collapsed && (
+        <button
+          onClick={() => setSidebarCollapsed(false)}
+          className="absolute left-3 top-3 z-20 hidden h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5 lg:flex"
+          aria-label="展开侧栏"
+        >
+          <PanelLeft size={17} />
+        </button>
+      )}
 
       {/* 滚动区：空状态 / 消息列表 */}
       <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
