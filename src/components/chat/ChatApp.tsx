@@ -243,14 +243,14 @@ export default function ChatApp() {
     e.target.value = ''
   }
 
-  const sendBtn = (dark: boolean) => (
+  const sendBtn = () => (
     <motion.button
       onClick={() => send()}
       disabled={typing || !draft.trim()}
       whileTap={{ scale: 0.9 }}
       className={cn(
-        'flex flex-none items-center justify-center rounded-full text-white transition',
-        typing || !draft.trim() ? 'bg-[#DAD7CE]' : dark ? 'bg-ink hover:bg-black' : 'bg-ink hover:bg-black',
+        'ml-auto flex flex-none items-center justify-center rounded-full text-white transition',
+        typing || !draft.trim() ? 'bg-[#DAD7CE]' : 'bg-ink hover:bg-black',
       )}
       style={{ height: 30, width: 30 }}
       aria-label="发送"
@@ -353,7 +353,7 @@ export default function ChatApp() {
               >
                 <Paperclip size={15} />
               </button>
-              {sendBtn(false)}
+              {sendBtn()}
             </div>
           </div>
 
@@ -402,7 +402,7 @@ export default function ChatApp() {
                 placeholder="继续追问…"
                 className="max-h-[160px] min-w-0 flex-1 resize-none self-center bg-transparent py-1.5 text-[14px] text-ink outline-none placeholder:text-faint/70"
               />
-              {sendBtn(false)}
+              {sendBtn()}
             </div>
           </div>
 
