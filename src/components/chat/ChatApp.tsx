@@ -207,10 +207,10 @@ function ModelLine({ model, onPickModel, variant = 'chat' }: { model: string; on
                         className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-black/[0.04]"
                       >
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
-                            {m.name}
+                          <span className="flex items-center gap-1.5 whitespace-nowrap text-[13px] font-semibold text-ink">
+                            <span className="flex-none">{m.name}</span>
                             {m.credits && (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] font-normal text-faint">
+                              <span className="inline-flex flex-none items-center gap-1 whitespace-nowrap rounded-full border border-line px-1.5 py-px text-[9.5px] font-normal text-faint">
                                 <CircleAlert size={9} /> 需要使用额度
                               </span>
                             )}
@@ -266,20 +266,20 @@ function ModelLine({ model, onPickModel, variant = 'chat' }: { model: string; on
                     更多模型
                     <ChevronRight size={12} className="text-faint" />
                   </button>
-                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 max-h-72 w-60 overflow-y-auto p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100 nice-scroll">
+                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 max-h-72 w-72 overflow-y-auto p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100 nice-scroll">
                     {moreList.map((m) => (
                       <button
                         key={m.name}
                         onClick={() => pick(m.name, m.credits)}
                         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink transition hover:bg-black/[0.04]"
                       >
-                        {m.name}
+                        <span className="flex-none whitespace-nowrap">{m.name}</span>
                         {m.credits && (
                           <>
-                            <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] text-faint">
+                            <span className="inline-flex flex-none items-center gap-1 whitespace-nowrap rounded-full border border-line px-1.5 py-px text-[9.5px] text-faint">
                               <CircleAlert size={9} /> 需要使用额度
                             </span>
-                            <span className="ml-auto rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
+                            <span className="ml-auto flex-none whitespace-nowrap rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
                           </>
                         )}
                       </button>
