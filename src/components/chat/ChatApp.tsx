@@ -564,15 +564,14 @@ export default function ChatApp() {
         </button>
       )}
 
-      {/* 滚动区：空状态 / 消息列表 */}
-      <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
-        {!hasMessages ? (
-          /* 空态：星芒 + 问候同行（claude.ai 同款） */
-          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 pb-24 pt-10">
+      {/* 空态：问候 + 输入卡 + 卡外行整体屏幕居中（claude.ai 同款） */}
+      {!hasMessages ? (
+        <div className="nice-scroll flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-8">
+          <div className="w-full max-w-3xl">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3"
+              className="mb-7 flex items-center justify-center gap-3"
             >
               <span className="text-brand">
                 <ClaudeMark size={30} />
@@ -581,10 +580,54 @@ export default function ChatApp() {
                 {greetingByHour()}
               </h1>
             </motion.div>
+
+            <div className="rounded-2xl border border-line bg-white shadow-lift">
+              <textarea
+                ref={taRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault()
+                    send()
+                  }
+                }}
+                rows={1}
+                placeholder="今天有什么可以帮您？"
+                className="block max-h-[160px] w-full resize-none bg-transparent px-4 pb-1 pt-3.5 text-[14.5px] text-ink outline-none placeholder:text-faint/70"
+              />
+              <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
+                {composerTools}
+                {draft.trim() || typing ? (
+                  sendBtn()
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <MicMenu />
+                    <button
+                      onClick={() => pushToast({ type: 'info', title: '语音模式（模拟功能）' })}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
+                      title="语音模式"
+                      aria-label="语音模式"
+                    >
+                      <AudioLines size={15} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 输入卡下方外部行：左 Project / 右 模型行（claude.ai 同款） */}
+            <div className="mt-2.5 flex items-center justify-between px-1">
+              <ProjectMenu />
+              <ModelLine model={model} onPickModel={setModel} />
+            </div>
           </div>
-        ) : (
-          /* 消息线程：AI 通栏 markdown，用户右对齐浅灰气泡 */
-          <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+        </div>
+      ) : (
+        <>
+          {/* 消息线程：AI 通栏 markdown，用户右对齐浅灰气泡 */}
+          <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
             {messages.map((m) =>
               m.role === 'user' ? (
                 <div key={m.id} className="flex justify-end">
@@ -615,56 +658,11 @@ export default function ChatApp() {
               ),
             )}
             <div className="h-2" />
-          </div>
-        )}
-      </div>
-
-      {/* 输入区：空态=悬浮大卡 / 对话态=底部胶囊条 */}
-      {!hasMessages ? (
-        <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-16">
-          <div className="rounded-2xl border border-line bg-white shadow-lift">
-            <textarea
-              ref={taRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault()
-                  send()
-                }
-              }}
-              rows={1}
-              placeholder="今天有什么可以帮您？"
-              className="block max-h-[160px] w-full resize-none bg-transparent px-4 pb-1 pt-3.5 text-[14.5px] text-ink outline-none placeholder:text-faint/70"
-            />
-            <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
-              {composerTools}
-              {draft.trim() || typing ? (
-                sendBtn()
-              ) : (
-                <div className="flex items-center gap-1">
-                  <MicMenu />
-                  <button
-                    onClick={() => pushToast({ type: 'info', title: '语音模式（模拟功能）' })}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
-                    title="语音模式"
-                    aria-label="语音模式"
-                  >
-                    <AudioLines size={15} />
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* 输入卡下方外部行：左 Project / 右 模型行（claude.ai 同款） */}
-          <div className="mt-2.5 flex items-center justify-between px-1">
-            <ProjectMenu />
-            <ModelLine model={model} onPickModel={setModel} />
-          </div>
-        </div>
-      ) : (
-        <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-3 lg:pb-4">
+          {/* 胶囊条下 footer 三段行 */}
+          <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-3 lg:pb-4">
           <div className="rounded-3xl border border-line bg-white shadow-soft">
             <div className="flex items-end gap-2 px-3 py-2.5">
               {composerTools}
@@ -716,6 +714,7 @@ export default function ChatApp() {
             </div>
           </div>
         </div>
+        </>
       )}
 
       <QuotaModal open={quotaOpen} onClose={() => setQuotaOpen(false)} />
