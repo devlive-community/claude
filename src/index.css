@@ -1,1 +1,277 @@
 @import "tailwindcss";
+
+/* ============ Claude 中国特色版 · 设计令牌 ============ */
+@theme {
+  /* 画布与卡片 */
+  --color-paper: #fff8ec;
+  --color-card: #fff4e5;
+  --color-card-deep: #fbeed7;
+  --color-line: #e8d3b3;
+
+  /* 品牌 */
+  --color-brand: #d97757;
+  --color-brand-deep: #c05a3b;
+  --color-brand-soft: #f3d9c8;
+
+  /* 营销红金 */
+  --color-cred: #c62828;
+  --color-cred-deep: #8e1b1b;
+  --color-cred-soft: #fbe3e0;
+  --color-gold: #d4a24c;
+  --color-gold-deep: #b8862f;
+  --color-gold-soft: #f7ead0;
+
+  /* 文字 */
+  --color-ink: #382015;
+  --color-body: #574638;
+  --color-faint: #8a7663;
+
+  /* 会员黑金 */
+  --color-member: #221914;
+  --color-member-2: #322419;
+
+  /* 字体 */
+  --font-sans: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-brush: "Ma Shan Zheng", "Noto Serif SC", serif;
+
+  /* 阴影 */
+  --shadow-soft: 0 8px 30px rgba(56, 32, 21, 0.08);
+  --shadow-lift: 0 14px 40px rgba(56, 32, 21, 0.16);
+  --shadow-red: 0 6px 18px rgba(198, 40, 40, 0.32);
+  --shadow-gold: 0 6px 18px rgba(212, 162, 76, 0.35);
+}
+
+/* ============ 基础 ============ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: rgba(217, 119, 87, 0.28);
+    color: var(--color-ink);
+  }
+  input,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}
+
+/* ============ 组件 ============ */
+@layer components {
+  /* 卡片 */
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+  }
+  .card-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* 按钮 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 12px;
+    padding: 0 18px;
+    height: 40px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .btn:active {
+    transform: scale(0.96);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-red {
+    color: #fff;
+    background: linear-gradient(135deg, #f04438, #b91c1c);
+    box-shadow: var(--shadow-red);
+  }
+  .btn-red:hover:not(:disabled) {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(198, 40, 40, 0.42);
+  }
+  .btn-gold {
+    color: #5b3a10;
+    background: linear-gradient(135deg, #f2cf8d, #d4a24c 55%, #c08f36);
+    box-shadow: var(--shadow-gold);
+  }
+  .btn-gold:hover:not(:disabled) {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    color: var(--color-body);
+    background: rgba(255, 251, 242, 0.8);
+    border: 1px solid var(--color-line);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: var(--color-gold);
+    color: var(--color-ink);
+    background: var(--color-gold-soft);
+  }
+  .btn-sm {
+    height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+  .btn-lg {
+    height: 46px;
+    font-size: 15px;
+    border-radius: 14px;
+  }
+
+  /* 红色印章标题块 */
+  .seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #d0342c, #a31515);
+    color: #fff4e5;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 2px 8px rgba(163, 21, 21, 0.35);
+  }
+
+  /* 金色渐变文字 */
+  .gold-text {
+    background: linear-gradient(120deg, #f5d98b, #d4a24c 45%, #f0c264);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 宣纸噪点 */
+  .paper-noise {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* 营销红底 */
+  .promo-bg {
+    background:
+      radial-gradient(120% 90% at 85% -10%, rgba(255, 200, 120, 0.22), transparent 55%),
+      linear-gradient(135deg, #d0342c, #b91c1c 55%, #8e1b1b);
+  }
+
+  /* 首页桌面网格（72 / 28 双栏） */
+  .home-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  @media (min-width: 1024px) {
+    .home-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.02fr) 380px;
+      grid-template-areas:
+        "hero hero signin"
+        "chat chat bargain"
+        "quick quick shake"
+        "ads ads member"
+        "tasks tasks redpacket"
+        "wheel wheel redpacket"
+        "shop shop redpacket";
+      align-items: start;
+    }
+    .area-hero { grid-area: hero; }
+    .area-signin { grid-area: signin; }
+    .area-chat { grid-area: chat; }
+    .area-bargain { grid-area: bargain; }
+    .area-quick { grid-area: quick; }
+    .area-shake { grid-area: shake; }
+    .area-ads { grid-area: ads; }
+    .area-member { grid-area: member; }
+    .area-tasks { grid-area: tasks; }
+    .area-redpacket { grid-area: redpacket; }
+    .area-wheel { grid-area: wheel; }
+    .area-shop { grid-area: shop; }
+  }
+
+  /* 纤细滚动条 */
+  .nice-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  .nice-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .nice-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 3px;
+  }
+  .nice-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* ============ 动画 ============ */
+@keyframes sway {
+  0%, 100% { transform: rotate(-3.5deg); }
+  50% { transform: rotate(3.5deg); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.anim-sway { animation: sway 4s ease-in-out infinite; transform-origin: top center; }
+.anim-floaty { animation: floaty 5s ease-in-out infinite; }
+.anim-blink { animation: blink-dot 1.6s ease-in-out infinite; }
