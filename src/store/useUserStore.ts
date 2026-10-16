@@ -3,6 +3,25 @@ import { persist } from 'zustand/middleware'
 import { todayStr, weightedPick } from '../lib/utils'
 
 export const FREE_CHATS_PER_DAY = 10
+/** 每 5 小时基础额度（与官方 claude.ai 一致） */
+export const SESSION_LIMIT = 10
+export const SESSION_WINDOW_MS = 5 * 3600_000
+/** 每周基础额度 */
+export const WEEKLY_LIMIT = 100
+export const WEEK_WINDOW_MS = 7 * 24 * 3600_000
+
+interface UsageWindow {
+  used: number
+  resetAt: number
+}
+
+function freshSession(): UsageWindow {
+  return { used: 0, resetAt: Date.now() + SESSION_WINDOW_MS }
+}
+
+function freshWeek(): UsageWindow {
+  return { used: 0, resetAt: Date.now() + WEEK_WINDOW_MS }
+}
 export const MAX_ADS_PER_DAY = 5
 export const MAX_SHAKES_PER_DAY = 3
 export const BARGAIN_BASE = 99
@@ -76,6 +95,8 @@ interface UserState {
   streak: number
   lastSignDate: string | null
   daily: DailyState
+  session: UsageWindow
+  week: UsageWindow
   bargain: {
     price: number
     selfCutDate: string
@@ -121,6 +142,8 @@ export const useUserStore = create<UserState>()(
       streak: 0,
       lastSignDate: null,
       daily: freshDaily(todayStr()),
+      session: freshSession(),
+      week: freshWeek(),
       bargain: {
         price: 8.9,
         selfCutDate: '',
@@ -155,21 +178,41 @@ export const useUserStore = create<UserState>()(
       grantChats: (n) => set((s) => ({ bonusChats: s.bonusChats + n })),
 
       consumeChat: () => {
-        const { daily, bonusChats } = get()
-        if (daily.chatUsed < FREE_CHATS_PER_DAY) {
-          set((s) => ({ daily: { ...s.daily, chatUsed: s.daily.chatUsed + 1 } }))
+        const s0 = get()
+        const now = Date.now()
+        let session = now >= s0.session.resetAt ? freshSession() : s0.session
+        let week = now >= s0.week.resetAt ? freshWeek() : s0.week
+        if (s0.isMember()) {
+          set({ session, week })
           return true
         }
+        const baseLeft = Math.min(SESSION_LIMIT - session.used, WEEKLY_LIMIT - week.used)
+        if (baseLeft > 0) {
+          session = { ...session, used: session.used + 1 }
+          week = { ...week, used: week.used + 1 }
+          set((s) => ({
+            session,
+            week,
+            daily: { ...s.daily, chatUsed: s.daily.chatUsed + 1 },
+          }))
+          return true
+        }
+        const { bonusChats } = s0
         if (bonusChats > 0) {
-          set((s) => ({ bonusChats: s.bonusChats - 1 }))
+          set({ bonusChats: bonusChats - 1, session, week })
           return true
         }
+        set({ session, week })
         return false
       },
 
       chatsRemaining: () => {
-        const { daily, bonusChats } = get()
-        return Math.max(0, FREE_CHATS_PER_DAY - daily.chatUsed) + bonusChats
+        const st = get()
+        const now = Date.now()
+        const su = now >= st.session.resetAt ? 0 : st.session.used
+        const wu = now >= st.week.resetAt ? 0 : st.week.used
+        const base = Math.max(0, Math.min(SESSION_LIMIT - su, WEEKLY_LIMIT - wu))
+        return st.isMember() ? 999 : base + st.bonusChats
       },
 
       watchAd: () => {
