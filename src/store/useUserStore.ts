@@ -9,6 +9,9 @@ export const SESSION_WINDOW_MS = 5 * 3600_000
 /** 每周基础额度 */
 export const WEEKLY_LIMIT = 100
 export const WEEK_WINDOW_MS = 7 * 24 * 3600_000
+/** 会员额度（更大但仍有限制） */
+export const SESSION_LIMIT_MEMBER = 50
+export const WEEKLY_LIMIT_MEMBER = 500
 
 interface UsageWindow {
   used: number
@@ -182,11 +185,9 @@ export const useUserStore = create<UserState>()(
         const now = Date.now()
         let session = now >= s0.session.resetAt ? freshSession() : s0.session
         let week = now >= s0.week.resetAt ? freshWeek() : s0.week
-        if (s0.isMember()) {
-          set({ session, week })
-          return true
-        }
-        const baseLeft = Math.min(SESSION_LIMIT - session.used, WEEKLY_LIMIT - week.used)
+        const sl = s0.isMember() ? SESSION_LIMIT_MEMBER : SESSION_LIMIT
+        const wl = s0.isMember() ? WEEKLY_LIMIT_MEMBER : WEEKLY_LIMIT
+        const baseLeft = Math.min(sl - session.used, wl - week.used)
         if (baseLeft > 0) {
           session = { ...session, used: session.used + 1 }
           week = { ...week, used: week.used + 1 }
@@ -211,8 +212,10 @@ export const useUserStore = create<UserState>()(
         const now = Date.now()
         const su = now >= st.session.resetAt ? 0 : st.session.used
         const wu = now >= st.week.resetAt ? 0 : st.week.used
-        const base = Math.max(0, Math.min(SESSION_LIMIT - su, WEEKLY_LIMIT - wu))
-        return st.isMember() ? 999 : base + st.bonusChats
+        const sl = st.isMember() ? SESSION_LIMIT_MEMBER : SESSION_LIMIT
+        const wl = st.isMember() ? WEEKLY_LIMIT_MEMBER : WEEKLY_LIMIT
+        const base = Math.max(0, Math.min(sl - su, wl - wu))
+        return base + st.bonusChats
       },
 
       watchAd: () => {
