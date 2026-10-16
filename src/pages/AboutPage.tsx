@@ -90,7 +90,7 @@ export default function AboutPage() {
           Claude 及相关名称仅用于讽刺性创意表达。所有广告、支付、奖励、会员均为模拟功能，不产生真实交易；
           本站不收集任何个人信息，所有数据仅保存在您的浏览器本地，清除浏览器数据即可完全重置。
         </p>
-        <button onClick={() => navigate('/')} className="btn btn-red mt-4">
+        <button onClick={() => navigate('/new')} className="btn btn-red mt-4">
           回到首页，继续体验
         </button>
       </section>

@@ -179,7 +179,7 @@ export default function Sidebar({
 
   const startNewChat = () => {
     newConversation()
-    navigate('/')
+    navigate('/new')
     onClose()
   }
 
@@ -274,7 +274,7 @@ export default function Sidebar({
               )}
               onClick={() => {
                 setActive(c.id)
-                navigate('/')
+                navigate(`/chat/${c.id}`)
                 onClose()
               }}
             >

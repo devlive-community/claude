@@ -15,7 +15,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
   const location = useLocation()
   const navigate = useNavigate()
-  const isChatHome = location.pathname === '/'
+  const isChatHome = location.pathname === '/new' || location.pathname.startsWith('/chat/')
 
   return (
     <div className="relative min-h-screen bg-paper">
@@ -51,7 +51,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </button>
         <span className="font-serif text-[15px] font-bold text-ink">Claude</span>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/new')}
           className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
           aria-label="新对话"
         >

@@ -1,31 +1,51 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowUp,
+  Archive,
   Brain,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleAlert,
+  Copy,
   Globe,
   Loader2,
-  Paperclip,
+  Mic,
+  PanelLeft,
   Plus,
   RefreshCw,
-  ChevronDown,
-  Copy,
-  Check,
-  Star,
+  Search,
   Share2,
-  PanelLeft,
+  SlidersHorizontal,
+  Star,
+  AudioLines,
 } from 'lucide-react'
 import { useChatStore, selectActiveConversation } from '../../store/useChatStore'
-import { useUserStore, FREE_CHATS_PER_DAY } from '../../store/useUserStore'
+import { useUserStore } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
 import { generateReply } from '../../lib/mockAI'
 import { renderMarkdown } from '../../lib/markdown'
 import { cn } from '../../lib/utils'
-import { ClaudeMark, CoinIcon } from '../icons'
+import { ClaudeMark } from '../icons'
 import QuotaModal from './QuotaModal'
 
-const MODELS = ['Claude Sonnet 4.5', 'Claude Opus 4.1', 'Claude Haiku 4.5']
-const shortModel = (m: string) => m.replace('Claude ', '')
+/** 模型阵容（与官方 claude.ai 一致） */
+const MODELS = [
+  { name: 'Fable 5.1', desc: 'For your toughest challenges', credits: true },
+  { name: 'Opus 5.5', desc: 'For complex work and everyday tasks' },
+  { name: 'Sonnet 5.5', desc: 'Most efficient for simpler tasks' },
+  { name: 'Haiku 5.5', desc: 'Fastest for quick answers' },
+]
+const MORE_MODELS = ['Fable 5', 'Opus 5', 'Opus 4.8', 'Opus 4.7', 'Opus 4.6', 'Opus 3', 'Sonnet 5', 'Sonnet 4.6', 'Haiku 4.5']
+const EFFORTS = [
+  { name: 'Low' },
+  { name: 'Medium', tag: 'Recommended' },
+  { name: 'High' },
+  { name: 'Extra' },
+  { name: 'Max', warn: '4× or more usage' },
+]
 
 function greetingByHour() {
   const h = new Date().getHours()
@@ -34,6 +54,11 @@ function greetingByHour() {
   if (h < 14) return '中午好，客官'
   if (h < 18) return '下午好，客官'
   return '晚上好，客官'
+}
+
+/** 关闭浮层的公共遮罩 */
+function Overlay({ onClose }: { onClose: () => void }) {
+  return <div className="fixed inset-0 z-20" onClick={onClose} />
 }
 
 /** 消息操作：复制 / 重新生成 */
@@ -60,43 +85,239 @@ function MessageActions({ content, onRegenerate, isLast }: { content: string; on
   )
 }
 
-/** 模型选择器：文本按钮 + 上弹菜单（claude.ai 同款 "Sonnet 4.5 | Medium" 样式） */
-function ModelPicker({ model, onPick }: { model: string; onPick: (m: string) => void }) {
+/** Project 下拉（claude.ai 同款：搜索 + 项目 + 新建） */
+function ProjectMenu() {
+  const [open, setOpen] = useState(false)
+  const pushToast = useUIStore((s) => s.pushToast)
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-[12.5px] font-medium text-body transition hover:bg-black/5"
+      >
+        Project <ChevronDown size={12} className={cn('text-faint transition', open && 'rotate-180')} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <Overlay onClose={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              className="card absolute bottom-9 left-0 z-30 w-60 p-1.5"
+            >
+              <div className="flex items-center gap-2 rounded-lg border border-line px-2.5 py-2">
+                <Search size={13} className="flex-none text-faint" />
+                <input placeholder="搜索或创建项目" className="min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-faint" />
+                <SlidersHorizontal size={13} className="flex-none text-faint" />
+              </div>
+              <button
+                onClick={() => { setOpen(false); pushToast({ type: 'info', title: '项目 TrendForge（模拟数据）' }) }}
+                className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
+              >
+                <Archive size={14} className="text-faint" /> TrendForge
+              </button>
+              <button
+                onClick={() => { setOpen(false); pushToast({ type: 'info', title: '新建项目（模拟功能）' }) }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
+              >
+                <Plus size={14} className="text-faint" /> 新建项目
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/** 模型行：Opus 5.5 / Medium / Manual，三个下拉（claude.ai 同款） */
+function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: string) => void }) {
+  const [mainOpen, setMainOpen] = useState(false)
+  const [permOpen, setPermOpen] = useState(false)
+  const [effort, setEffort] = useState('Medium')
+  const [perm, setPerm] = useState<'Manual' | 'Auto'>('Manual')
+  const pushToast = useUIStore((s) => s.pushToast)
+
+  return (
+    <div className="flex items-center gap-0.5 text-[12.5px]">
+      {/* 模型 + Effort 一体按钮 */}
+      <div className="relative">
+        <button
+          onClick={() => { setMainOpen((v) => !v); setPermOpen(false) }}
+          className="flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition hover:bg-black/5"
+        >
+          <span className="font-semibold text-body">{model}</span>
+          <span className="text-faint">{effort}</span>
+        </button>
+        <AnimatePresence>
+          {mainOpen && (
+            <>
+              <Overlay onClose={() => setMainOpen(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                className="card absolute bottom-9 right-0 z-30 w-72 p-1.5"
+              >
+                {MODELS.map((m) => (
+                  <button
+                    key={m.name}
+                    onClick={() => {
+                      if (m.credits) pushToast({ type: 'warn', title: 'Fable 5.1 需要使用额度', desc: '模拟提示：仅尊享会员可用' })
+                      else {
+                        onPickModel(m.name)
+                        pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m.name })
+                      }
+                      setMainOpen(false)
+                    }}
+                    className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-black/[0.04]"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+                        {m.name}
+                        {m.credits && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] font-normal text-faint">
+                            <CircleAlert size={9} /> 需要使用额度
+                          </span>
+                        )}
+                      </span>
+                      <span className="block text-[11.5px] text-faint">{m.desc}</span>
+                    </span>
+                    {m.credits ? (
+                      <span className="mt-0.5 flex-none rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
+                    ) : (
+                      m.name === model && <Check size={14} className="mt-1 flex-none text-ink" />
+                    )}
+                  </button>
+                ))}
+                <div className="my-1 border-t border-line" />
+                {/* Effort 行（hover 展开子菜单） */}
+                <div className="group relative">
+                  <button className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] text-ink transition hover:bg-black/[0.04]">
+                    Effort
+                    <span className="flex items-center gap-1 text-[12px] text-faint">
+                      {effort} <ChevronRight size={12} />
+                    </span>
+                  </button>
+                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 w-56 p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                    {EFFORTS.map((e) => (
+                      <button
+                        key={e.name}
+                        onClick={() => { setEffort(e.name); setMainOpen(false); pushToast({ type: 'info', title: `Effort 已设为 ${e.name}（模拟）` }) }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink transition hover:bg-black/[0.04]"
+                      >
+                        {e.name}
+                        {e.tag && <span className="rounded-full border border-line px-1.5 py-px text-[9.5px] text-faint">{e.tag}</span>}
+                        {e.warn && <span className="rounded-full bg-amber-50 px-1.5 py-px text-[9.5px] text-amber-700">⚠ {e.warn}</span>}
+                        {e.name === effort && <Check size={13} className="ml-auto text-ink" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* More models 行（hover 展开二级列表） */}
+                <div className="group relative">
+                  <button className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] text-ink transition hover:bg-black/[0.04]">
+                    更多模型
+                    <ChevronRight size={12} className="text-faint" />
+                  </button>
+                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 max-h-72 w-48 overflow-y-auto p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100 nice-scroll">
+                    {MORE_MODELS.map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => { onPickModel(m); setMainOpen(false); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink transition hover:bg-black/[0.04]"
+                      >
+                        {m}
+                        {m === model && <Check size={13} className="ml-auto text-ink" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="border-t border-line px-2.5 pb-1 pt-2 text-[11px] leading-relaxed text-faint">
+                  Fable 5.1 包含在 Max 方案中，Pro 方案可通过使用额度体验。<span className="cursor-pointer underline">了解更多</span>
+                </p>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Permission mode 按钮（hover 才有背景） */}
+      <div className="relative">
+        <button
+          onClick={() => { setPermOpen((v) => !v); setMainOpen(false); }}
+          className="rounded-lg px-2 py-1 text-faint transition hover:bg-black/[0.06] hover:text-body"
+        >
+          {perm}
+        </button>
+        <AnimatePresence>
+          {permOpen && (
+            <>
+              <Overlay onClose={() => setPermOpen(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                className="card absolute bottom-9 right-0 z-30 w-64 p-2"
+              >
+                <p className="px-1.5 pb-1 text-[12px] text-faint">权限模式</p>
+                {(
+                  [
+                    { name: 'Manual' as const, desc: 'Claude 在使用新工具或打开新网站前会先询问。' },
+                    { name: 'Auto' as const, desc: 'Claude 自主运行，遇到不确定的操作会暂停询问。' },
+                  ]
+                ).map((p) => (
+                  <button
+                    key={p.name}
+                    onClick={() => { setPerm(p.name); setPermOpen(false); pushToast({ type: 'info', title: `权限模式：${p.name}（模拟）` }) }}
+                    className="flex w-full items-start gap-2 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-black/[0.04]"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold text-ink">{p.name}</span>
+                      <span className="block text-[11px] leading-relaxed text-faint">{p.desc}</span>
+                    </span>
+                    {p.name === perm && <Check size={14} className="mt-1 flex-none text-ink" />}
+                  </button>
+                ))}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+/** 麦克风下拉：未找到设备（claude.ai 同款提示） */
+function MicMenu() {
   const [open, setOpen] = useState(false)
   return (
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-[12px] font-medium text-faint transition hover:bg-black/5 hover:text-body"
+        className="flex h-8 items-center gap-0.5 rounded-lg px-1 text-body transition hover:bg-black/5"
+        aria-label="语音输入"
       >
-        {shortModel(model)} <span className="text-faint/50">|</span> Medium
-        <ChevronDown size={11} className={cn('transition', open && 'rotate-180')} />
+        <Mic size={15} />
+        <ChevronDown size={11} className="text-faint" />
       </button>
       <AnimatePresence>
         {open && (
           <>
-            <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+            <Overlay onClose={() => setOpen(false)} />
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
-              className="card absolute bottom-8 right-0 z-30 w-56 p-1.5"
+              className="card absolute bottom-10 right-0 z-30 w-52 p-3"
             >
-              {MODELS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    onPick(m)
-                    setOpen(false)
-                  }}
-                  className={cn(
-                    'block w-full rounded-lg px-3 py-2 text-left text-xs transition hover:bg-card-deep',
-                    m === model ? 'font-bold text-ink' : 'text-body',
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
+              <div className="flex items-center gap-2.5">
+                <Mic size={15} className="flex-none text-faint" />
+                <div className="h-1.5 flex-1 rounded-full bg-black/[0.08]" />
+              </div>
+              <p className="pt-2.5 text-[13px] text-faint">未找到语音设备</p>
             </motion.div>
           </>
         )}
@@ -123,12 +344,12 @@ function ChatHeader({ title }: { title: string }) {
           </button>
         )}
         <button
-        onClick={() => pushToast({ type: 'info', title: '会话设置（模拟功能）' })}
-        className="flex min-w-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium text-ink transition hover:bg-black/[0.05]"
-      >
-        <span className="max-w-[55vw] truncate">{title}</span>
-        <ChevronDown size={13} className="flex-none text-faint" />
-      </button>
+          onClick={() => pushToast({ type: 'info', title: '会话设置（模拟功能）' })}
+          className="flex min-w-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium text-ink transition hover:bg-black/[0.05]"
+        >
+          <span className="max-w-[55vw] truncate">{title}</span>
+          <ChevronDown size={13} className="flex-none text-faint" />
+        </button>
       </div>
       <div className="flex flex-none items-center gap-1">
         <button
@@ -150,7 +371,10 @@ function ChatHeader({ title }: { title: string }) {
 }
 
 export default function ChatApp() {
-  const conversation = useChatStore(selectActiveConversation)
+  const { id: routeId } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const conversations = useChatStore((s) => s.conversations)
+  const activeConv = useChatStore(selectActiveConversation)
   const typing = useChatStore((s) => s.typing)
   const setTyping = useChatStore((s) => s.setTyping)
   const draft = useChatStore((s) => s.draft)
@@ -160,7 +384,6 @@ export default function ChatApp() {
   const removeLastAi = useChatStore((s) => s.removeLastAi)
   const renameFromFirstMessage = useChatStore((s) => s.renameFromFirstMessage)
 
-  const remaining = useUserStore((s) => s.chatsRemaining())
   const consumeChat = useUserStore((s) => s.consumeChat)
   const setTaskDone = useUserStore((s) => s.setTaskDone)
   const pushToast = useUIStore((s) => s.pushToast)
@@ -169,7 +392,7 @@ export default function ChatApp() {
 
   const [web, setWeb] = useState(false)
   const [deep, setDeep] = useState(false)
-  const [model, setModel] = useState(MODELS[0])
+  const [model, setModel] = useState('Opus 5.5')
   const [file, setFile] = useState<string | null>(null)
   const [quotaOpen, setQuotaOpen] = useState(false)
 
@@ -178,29 +401,43 @@ export default function ChatApp() {
   const taRef = useRef<HTMLTextAreaElement>(null)
   const timerRef = useRef<number | null>(null)
 
+  /** 当前会话：/chat/:id 由 URL 派生；/new 跟随 activeId */
+  const conversation = useMemo(
+    () => (routeId ? conversations.find((c) => c.id === routeId) ?? null : activeConv),
+    [routeId, conversations, activeConv],
+  )
   const messages = conversation?.messages ?? []
   const hasMessages = messages.length > 0
   const lastAiId = [...messages].reverse().find((m) => m.role === 'ai')?.id
 
+  /** 路由同步：/new 保证空会话；/chat/:id 激活对应会话（无效则回 /new） */
+  useLayoutEffect(() => {
+    const st = useChatStore.getState()
+    if (!routeId) {
+      const conv = st.conversations.find((c) => c.id === st.activeId)
+      if (conv && conv.messages.length > 0) st.newConversation()
+    } else if (st.conversations.some((c) => c.id === routeId)) {
+      if (st.activeId !== routeId) st.setActive(routeId)
+    } else {
+      navigate('/new', { replace: true })
+    }
+  }, [routeId, navigate])
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current)
+    }
+  }, [])
+
+  /** 浏览器标签页标题：新对话 - Claude / 对话名字 - Claude */
+  useEffect(() => {
+    document.title = hasMessages && conversation ? `${conversation.title} - Claude` : '新对话 - Claude'
+  }, [hasMessages, conversation?.id, conversation?.title])
 
   useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, typing])
-
-  useEffect(() => {
-    setTyping(false)
-    return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  /** 浏览器标签页标题：新对话 - Claude / 对话名字 - Claude */
-  useEffect(() => {
-    document.title = hasMessages ? `${conversation?.title ?? '新对话'} - Claude` : '新对话 - Claude'
-  }, [hasMessages, conversation?.title])
 
   /** 输入框自适应高度 */
   useEffect(() => {
@@ -240,10 +477,15 @@ export default function ChatApp() {
       setFile(null)
       setTaskDone('chat')
       setTyping(true)
+      // 新对话发送首条消息后，URL 切换到 /chat/<id>
+      if (!routeId) {
+        const nid = useChatStore.getState().activeId
+        if (nid) navigate(`/chat/${nid}`, { replace: true })
+      }
       const reply = generateReply(content, { web, deep })
       window.setTimeout(() => stream(reply), 600)
     },
-    [draft, consumeChat, addMsg, setDraft, setTaskDone, setTyping, web, deep, file, stream, renameFromFirstMessage],
+    [draft, consumeChat, addMsg, setDraft, setTaskDone, setTyping, web, deep, file, stream, renameFromFirstMessage, routeId, navigate],
   )
 
   const regenerate = useCallback(() => {
@@ -272,14 +514,29 @@ export default function ChatApp() {
       disabled={typing || !draft.trim()}
       whileTap={{ scale: 0.9 }}
       className={cn(
-        'ml-auto flex flex-none items-center justify-center rounded-full text-white transition',
+        'ml-auto flex h-8 w-8 flex-none items-center justify-center rounded-full text-white transition',
         typing || !draft.trim() ? 'bg-[#DAD7CE]' : 'bg-ink hover:bg-black',
       )}
-      style={{ height: 30, width: 30 }}
       aria-label="发送"
     >
       {typing ? <Loader2 size={14} className="animate-spin" /> : <ArrowUp size={15} strokeWidth={2.4} />}
     </motion.button>
+  )
+
+  const composerTools = (
+    <>
+      <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
+      <button
+        onClick={() => fileRef.current?.click()}
+        className={cn(
+          'flex h-8 w-8 flex-none items-center justify-center rounded-lg text-body transition hover:bg-black/5',
+          file && 'text-brand',
+        )}
+        title={file ? `已选：${file}` : '上传文件（模拟）'}
+      >
+        <Plus size={16} />
+      </button>
+    </>
   )
 
   return (
@@ -301,24 +558,20 @@ export default function ChatApp() {
       {/* 滚动区：空状态 / 消息列表 */}
       <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
         {!hasMessages ? (
-          /* 空态：居中星芒 + 衬线问候（claude.ai 同款，无建议 chips） */
-          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 pb-28 pt-10">
-            <motion.span
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="text-brand"
-            >
-              <ClaudeMark size={44} />
-            </motion.span>
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
+          /* 空态：星芒 + 问候同行（claude.ai 同款） */
+          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 pb-24 pt-10">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-              className="mt-6 font-serif text-[30px] font-bold tracking-tight text-ink md:text-[34px]"
+              className="flex items-center gap-3"
             >
-              {greetingByHour()}
-            </motion.h1>
+              <span className="text-brand">
+                <ClaudeMark size={30} />
+              </span>
+              <h1 className="font-serif text-[30px] font-bold tracking-tight text-ink md:text-[32px]">
+                {greetingByHour()}
+              </h1>
+            </motion.div>
           </div>
         ) : (
           /* 消息线程：AI 通栏 markdown，用户右对齐浅灰气泡 */
@@ -375,53 +628,37 @@ export default function ChatApp() {
               placeholder="今天有什么可以帮您？"
               className="block max-h-[160px] w-full resize-none bg-transparent px-4 pb-1 pt-3.5 text-[14.5px] text-ink outline-none placeholder:text-faint/70"
             />
-            <div className="flex items-center gap-1.5 px-2.5 pb-2.5">
-              <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
-              <button
-                onClick={() => fileRef.current?.click()}
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5',
-                  file && 'text-brand',
-                )}
-                title={file ? `已选：${file}` : '上传文件（模拟）'}
-              >
-                <Paperclip size={15} />
-              </button>
-              {sendBtn()}
+            <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
+              {composerTools}
+              {draft.trim() || typing ? (
+                sendBtn()
+              ) : (
+                <div className="flex items-center gap-1">
+                  <MicMenu />
+                  <button
+                    onClick={() => pushToast({ type: 'info', title: '语音模式（模拟功能）' })}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
+                    title="语音模式"
+                    aria-label="语音模式"
+                  >
+                    <AudioLines size={15} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* 输入卡下方外部行：左 额度 chip / 右 模型选择 */}
+          {/* 输入卡下方外部行：左 Project / 右 模型行（claude.ai 同款） */}
           <div className="mt-2.5 flex items-center justify-between px-1">
-            <button
-              onClick={() => setQuotaOpen(true)}
-              className="flex items-center gap-1.5 rounded-full border border-line bg-white/70 px-2.5 py-1 text-[11.5px] text-body transition hover:bg-white"
-            >
-              <CoinIcon size={12} />
-              今日额度{' '}
-              <span className={cn('font-bold tabular-nums', remaining > 2 ? 'text-emerald-700' : 'text-cred')}>
-                {remaining}
-              </span>
-              /{FREE_CHATS_PER_DAY}
-            </button>
-            <ModelPicker model={model} onPick={(m) => { setModel(m); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }} />
+            <ProjectMenu />
+            <ModelLine model={model} onPickModel={setModel} />
           </div>
         </div>
       ) : (
         <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-3 lg:pb-4">
           <div className="rounded-3xl border border-line bg-white shadow-soft">
             <div className="flex items-end gap-2 px-3 py-2.5">
-              <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
-              <button
-                onClick={() => fileRef.current?.click()}
-                className={cn(
-                  'flex h-8 w-8 flex-none items-center justify-center rounded-full text-body transition hover:bg-black/5',
-                  file && 'text-brand',
-                )}
-                title={file ? `已选：${file}` : '上传文件（模拟）'}
-              >
-                <Plus size={16} />
-              </button>
+              {composerTools}
               <textarea
                 ref={taRef}
                 value={draft}
@@ -466,7 +703,7 @@ export default function ChatApp() {
             </div>
             <p className="hidden truncate text-[11px] text-faint sm:block">Claude 是 AI，回复仅供娱乐。</p>
             <div className="flex-none">
-              <ModelPicker model={model} onPick={(m) => { setModel(m); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }} />
+              <ModelLine model={model} onPickModel={setModel} />
             </div>
           </div>
         </div>

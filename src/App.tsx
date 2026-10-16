@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './components/layout/AppShell'
 import HomePage from './pages/HomePage'
 import PaintPage from './pages/PaintPage'
@@ -31,7 +31,9 @@ export default function App() {
       <div className="relative min-h-screen">
         <AppShell>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Navigate to="/new" replace />} />
+            <Route path="/new" element={<HomePage />} />
+            <Route path="/chat/:id" element={<HomePage />} />
             <Route path="/paint" element={<PaintPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/shop" element={<ShopPage />} />
