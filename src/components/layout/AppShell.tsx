@@ -66,7 +66,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           (collapsed ? '' : 'lg:pl-[248px] ') +
           (collapsed && !isChatHome ? 'lg:pt-12 ' : '') +
           (isChatHome
-            ? 'flex min-h-[calc(100vh-52px)] flex-col lg:min-h-screen'
+            ? 'flex h-[calc(100vh-52px)] flex-col overflow-hidden lg:h-screen'
             : 'min-h-[calc(100vh-52px)] lg:min-h-screen')
         }
       >
