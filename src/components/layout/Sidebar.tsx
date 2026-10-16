@@ -235,16 +235,6 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* New 按钮 */}
-      <div className="px-3 pt-2.5">
-        <button
-          onClick={startNewChat}
-          className="flex w-full items-center gap-2 rounded-lg border border-line bg-white/80 px-2.5 py-[7px] text-[13px] font-semibold text-ink transition hover:bg-white"
-        >
-          <span className="text-brand">+</span> 新对话
-        </button>
-      </div>
-
       {/* 导航（福利玩法） */}
       <div className="mt-3 space-y-0.5 px-3">
         {[
@@ -310,18 +300,6 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* 会员入口（Pro 位置） */}
-        <button
-          onClick={() => go('/shop')}
-          className={cn(
-            'mt-3 flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition',
-            isMember() ? 'border-gold/40 bg-white text-ink' : 'border-transparent bg-white/70 hover:bg-white',
-          )}
-        >
-          <Crown size={14} className="text-gold-deep" />
-          <span className="text-[12.5px] font-semibold text-body">{isMember() ? '尊享会员生效中' : '升级尊享会员'}</span>
-          {!isMember() && <span className="ml-auto text-[11px] font-bold text-brand">¥9.9/月</span>}
-        </button>
       </div>
 
       {/* 底部账户 */}
