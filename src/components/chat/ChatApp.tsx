@@ -1,23 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUp, Brain, Globe, Loader2, Paperclip, RefreshCw, ChevronDown, Copy, Check } from 'lucide-react'
+import {
+  ArrowUp,
+  Brain,
+  Globe,
+  Loader2,
+  Paperclip,
+  Plus,
+  RefreshCw,
+  ChevronDown,
+  Copy,
+  Check,
+  Star,
+  Share2,
+} from 'lucide-react'
 import { useChatStore, selectActiveConversation } from '../../store/useChatStore'
 import { useUserStore, FREE_CHATS_PER_DAY } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
 import { generateReply } from '../../lib/mockAI'
 import { renderMarkdown } from '../../lib/markdown'
 import { cn } from '../../lib/utils'
-import { ClaudeMark } from '../icons'
+import { ClaudeMark, CoinIcon } from '../icons'
 import QuotaModal from './QuotaModal'
 
 const MODELS = ['Claude Sonnet 4.5', 'Claude Opus 4.1', 'Claude Haiku 4.5']
-
-const SUGGESTIONS = [
-  '帮我写一份周报，重点是砍一刀活动上线',
-  '用 Python 写一个快速排序，带注释',
-  '写一首关于「连续签到七天」的诗',
-  '推荐一份成都三日游美食攻略',
-]
+const shortModel = (m: string) => m.replace('Claude ', '')
 
 function greetingByHour() {
   const h = new Date().getHours()
@@ -52,6 +59,82 @@ function MessageActions({ content, onRegenerate, isLast }: { content: string; on
   )
 }
 
+/** 模型选择器：文本按钮 + 上弹菜单（claude.ai 同款 "Sonnet 4.5 | Medium" 样式） */
+function ModelPicker({ model, onPick }: { model: string; onPick: (m: string) => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-[12px] font-medium text-faint transition hover:bg-black/5 hover:text-body"
+      >
+        {shortModel(model)} <span className="text-faint/50">|</span> Medium
+        <ChevronDown size={11} className={cn('transition', open && 'rotate-180')} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              className="card absolute bottom-8 right-0 z-30 w-56 p-1.5"
+            >
+              {MODELS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => {
+                    onPick(m)
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    'block w-full rounded-lg px-3 py-2 text-left text-xs transition hover:bg-card-deep',
+                    m === model ? 'font-bold text-ink' : 'text-body',
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/** 对话态顶部细条：左标题 / 右收藏+分享 */
+function ChatHeader({ title }: { title: string }) {
+  const pushToast = useUIStore((s) => s.pushToast)
+  return (
+    <header className="flex h-12 flex-none items-center justify-between border-b border-black/[0.04] bg-paper/90 px-4 backdrop-blur">
+      <button
+        onClick={() => pushToast({ type: 'info', title: '会话设置（模拟功能）' })}
+        className="flex min-w-0 items-center gap-1 text-[13.5px] font-medium text-body transition hover:text-ink"
+      >
+        <span className="max-w-[55vw] truncate">{title}</span>
+        <ChevronDown size={13} className="flex-none text-faint" />
+      </button>
+      <div className="flex flex-none items-center gap-1">
+        <button
+          onClick={() => pushToast({ type: 'success', title: '已收藏该对话（模拟）' })}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
+          aria-label="收藏"
+        >
+          <Star size={15} />
+        </button>
+        <button
+          onClick={() => pushToast({ type: 'success', title: '分享链接已复制（模拟）' })}
+          className="flex h-8 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-[12.5px] font-medium text-body transition hover:bg-card-deep"
+        >
+          <Share2 size={12} /> 分享
+        </button>
+      </div>
+    </header>
+  )
+}
+
 export default function ChatApp() {
   const conversation = useChatStore(selectActiveConversation)
   const typing = useChatStore((s) => s.typing)
@@ -71,7 +154,6 @@ export default function ChatApp() {
   const [web, setWeb] = useState(false)
   const [deep, setDeep] = useState(false)
   const [model, setModel] = useState(MODELS[0])
-  const [modelOpen, setModelOpen] = useState(false)
   const [file, setFile] = useState<string | null>(null)
   const [quotaOpen, setQuotaOpen] = useState(false)
 
@@ -81,6 +163,8 @@ export default function ChatApp() {
   const timerRef = useRef<number | null>(null)
 
   const messages = conversation?.messages ?? []
+  const hasMessages = messages.length > 0
+  const lastAiId = [...messages].reverse().find((m) => m.role === 'ai')?.id
 
   useEffect(() => {
     setTyping(false)
@@ -100,7 +184,7 @@ export default function ChatApp() {
     const ta = taRef.current
     if (!ta) return
     ta.style.height = 'auto'
-    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px'
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'
   }, [draft])
 
   const stream = useCallback(
@@ -150,102 +234,87 @@ export default function ChatApp() {
     window.setTimeout(() => stream(reply), 500)
   }, [removeLastAi, setTyping, stream])
 
-  const lastAiId = [...messages].reverse().find((m) => m.role === 'ai')?.id
-  const hasMessages = messages.length > 0
-  const pct = (Math.max(0, Math.min(FREE_CHATS_PER_DAY, remaining)) / FREE_CHATS_PER_DAY) * 100
+  const pickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (f) {
+      setFile(f.name)
+      pushToast({ type: 'info', title: '已选择文件（模拟上传）', desc: f.name })
+    }
+    e.target.value = ''
+  }
+
+  const sendBtn = (dark: boolean) => (
+    <motion.button
+      onClick={() => send()}
+      disabled={typing || !draft.trim()}
+      whileTap={{ scale: 0.9 }}
+      className={cn(
+        'flex flex-none items-center justify-center rounded-full text-white transition',
+        typing || !draft.trim() ? 'bg-[#DAD7CE]' : dark ? 'bg-ink hover:bg-black' : 'bg-ink hover:bg-black',
+      )}
+      style={{ height: 30, width: 30 }}
+      aria-label="发送"
+    >
+      {typing ? <Loader2 size={14} className="animate-spin" /> : <ArrowUp size={15} strokeWidth={2.4} />}
+    </motion.button>
+  )
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {/* 对话态顶部细条 */}
+      {hasMessages && <ChatHeader title={conversation?.title ?? '新对话'} />}
+
       {/* 滚动区：空状态 / 消息列表 */}
-      <div ref={scrollRef} className="nice-scroll flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto">
         {!hasMessages ? (
-          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 py-10">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+          /* 空态：居中星芒 + 衬线问候（claude.ai 同款，无建议 chips） */
+          <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 pb-28 pt-10">
+            <motion.span
+              initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 shadow-soft"
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+              className="text-brand"
             >
-              <span className="text-brand">
-                <ClaudeMark size={32} />
-              </span>
-            </motion.div>
+              <ClaudeMark size={44} />
+            </motion.span>
             <motion.h1
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 }}
-              className="mt-5 font-serif text-[26px] font-bold text-ink md:text-3xl"
+              className="mt-6 font-serif text-[30px] font-bold tracking-tight text-ink md:text-[34px]"
             >
               {greetingByHour()}
             </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.16 }}
-              className="mt-2 text-sm text-faint"
-            >
-              今天想聊点什么？每日免费对话还剩 {remaining} 次～
-            </motion.p>
-
-            {/* 快捷建议（Claude 官网风格 pills） */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.24 }}
-              className="mt-7 grid w-full max-w-2xl grid-cols-1 gap-2 sm:grid-cols-2"
-            >
-              {SUGGESTIONS.map((s) => (
-                <motion.button
-                  key={s}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    setDraft(s)
-                    taRef.current?.focus()
-                  }}
-                  className="rounded-full border border-line bg-transparent px-4 py-2 text-[13px] text-body transition hover:border-brand/50 hover:bg-white"
-                >
-                  {s}
-                </motion.button>
-              ))}
-            </motion.div>
           </div>
         ) : (
+          /* 消息线程：AI 通栏 markdown，用户右对齐浅灰气泡 */
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
             {messages.map((m) =>
               m.role === 'user' ? (
                 <div key={m.id} className="flex justify-end">
-                  <div className="max-w-[85%]">
+                  <div className="max-w-[80%]">
                     {m.tag && (
                       <span className="mb-1 block text-right text-[10px] text-[#4C6FA5]">已上传：{m.tag}</span>
                     )}
-                    <div className="rounded-2xl rounded-tr-md bg-[#F0E4CE]/80 px-4 py-3 text-[14px] leading-relaxed text-ink">
-                      {m.content}
-                    </div>
+                    <div className="rounded-2xl bg-[#F0EEE6] px-4 py-3 text-[14px] leading-relaxed text-ink">{m.content}</div>
                   </div>
                 </div>
               ) : (
-                <div key={m.id} className="group flex gap-3">
-                  <span className="mt-1 flex h-7 w-7 flex-none items-center justify-center rounded-full bg-white/90 shadow-sm">
-                    <span className="text-brand">
-                      <ClaudeMark size={17} />
-                    </span>
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {m.tag && <span className="mb-1 block text-[10px] text-[#4C6FA5]">已上传：{m.tag}</span>}
-                    <div className="text-[14px] leading-relaxed text-body">
-                      {m.content ? (
-                        renderMarkdown(m.content)
-                      ) : (
-                        <span className="flex items-center gap-2 text-faint">
-                          <Loader2 size={14} className="animate-spin" />
-                          思考中……
-                        </span>
-                      )}
-                    </div>
-                    {m.content && (
-                      <MessageActions content={m.content} onRegenerate={regenerate} isLast={m.id === lastAiId} />
+                <div key={m.id} className="group min-w-0">
+                  {m.tag && <span className="mb-1 block text-[10px] text-[#4C6FA5]">已上传：{m.tag}</span>}
+                  <div className="text-[14px] leading-relaxed text-body">
+                    {m.content ? (
+                      renderMarkdown(m.content)
+                    ) : (
+                      <span className="flex items-center gap-2 text-faint">
+                        <Loader2 size={14} className="animate-spin" />
+                        思考中……
+                      </span>
                     )}
                   </div>
+                  {m.content && (
+                    <MessageActions content={m.content} onRegenerate={regenerate} isLast={m.id === lastAiId} />
+                  )}
                 </div>
               ),
             )}
@@ -254,133 +323,120 @@ export default function ChatApp() {
         )}
       </div>
 
-      {/* 输入区 */}
-      <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-20 lg:pb-5">
-        <div className="rounded-2xl border border-line bg-white/90 shadow-soft backdrop-blur">
-          <textarea
-            ref={taRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault()
-                send()
-              }
-            }}
-            rows={1}
-            placeholder={hasMessages ? '继续追问……' : '有什么问题尽管问我吧……'}
-            className="block max-h-[200px] w-full resize-none bg-transparent px-4 pb-1 pt-3.5 text-[14px] text-ink outline-none placeholder:text-faint/70"
-          />
-          <div className="flex items-center gap-1.5 px-2.5 pb-2.5">
-            <input
-              ref={fileRef}
-              type="file"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) {
-                  setFile(f.name)
-                  pushToast({ type: 'info', title: '已选择文件（模拟上传）', desc: f.name })
+      {/* 输入区：空态=悬浮大卡 / 对话态=底部胶囊条 */}
+      {!hasMessages ? (
+        <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-16">
+          <div className="rounded-2xl border border-line bg-white shadow-lift">
+            <textarea
+              ref={taRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault()
+                  send()
                 }
-                e.target.value = ''
               }}
+              rows={1}
+              placeholder="今天有什么可以帮您？"
+              className="block max-h-[160px] w-full resize-none bg-transparent px-4 pb-1 pt-3.5 text-[14.5px] text-ink outline-none placeholder:text-faint/70"
             />
-            <button
-              onClick={() => fileRef.current?.click()}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5',
-                file && 'text-brand',
-              )}
-              title={file ? `已选：${file}` : '上传文件（模拟）'}
-            >
-              <Paperclip size={15} />
-            </button>
-            <button
-              onClick={() => setWeb((v) => !v)}
-              className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-black/5', web ? 'bg-brand-soft text-brand-deep' : 'text-body')}
-              title="联网搜索（模拟）"
-            >
-              <Globe size={15} />
-            </button>
-            <button
-              onClick={() => setDeep((v) => !v)}
-              className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-black/5', deep ? 'bg-brand-soft text-brand-deep' : 'text-body')}
-              title="深度思考（模拟）"
-            >
-              <Brain size={15} />
-            </button>
-
-            {/* 模型选择（claude.ai 位置：发送键左侧） */}
-            <div className="relative ml-auto">
+            <div className="flex items-center gap-1.5 px-2.5 pb-2.5">
+              <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
               <button
-                onClick={() => setModelOpen((v) => !v)}
-                className="flex h-8 items-center gap-1 rounded-lg px-2 text-[12.5px] font-medium text-body transition hover:bg-black/5"
-              >
-                {model} <ChevronDown size={12} className={cn('text-faint transition', modelOpen && 'rotate-180')} />
-              </button>
-              <AnimatePresence>
-                {modelOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    className="card absolute bottom-9 left-0 z-30 w-52 p-1.5"
-                    style={{ background: '#FFFBF2' }}
-                  >
-                    {MODELS.map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => {
-                          setModel(m)
-                          setModelOpen(false)
-                          pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m })
-                        }}
-                        className={cn(
-                          'block w-full rounded-lg px-3 py-2 text-left text-xs transition hover:bg-card-deep',
-                          m === model ? 'font-bold text-cred' : 'text-body',
-                        )}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </motion.div>
+                onClick={() => fileRef.current?.click()}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-lg text-body transition hover:bg-black/5',
+                  file && 'text-brand',
                 )}
-              </AnimatePresence>
+                title={file ? `已选：${file}` : '上传文件（模拟）'}
+              >
+                <Paperclip size={15} />
+              </button>
+              {sendBtn(false)}
             </div>
+          </div>
 
-            {/* 发送按钮（Claude 官网式圆形） */}
-            <motion.button
-              onClick={() => send()}
-              disabled={typing || !draft.trim()}
-              whileTap={{ scale: 0.9 }}
-              className={cn(
-                'ml-auto flex h-9 w-9 items-center justify-center rounded-full text-white transition',
-                typing || !draft.trim() ? 'bg-[#DAD7CE]' : 'bg-ink hover:bg-black',
-              )}
-              aria-label="发送"
+          {/* 输入卡下方外部行：左 额度 chip / 右 模型选择 */}
+          <div className="mt-2.5 flex items-center justify-between px-1">
+            <button
+              onClick={() => setQuotaOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-line bg-white/70 px-2.5 py-1 text-[11.5px] text-body transition hover:bg-white"
             >
-              {typing ? <Loader2 size={15} className="animate-spin" /> : <ArrowUp size={17} strokeWidth={2.4} />}
-            </motion.button>
+              <CoinIcon size={12} />
+              今日额度{' '}
+              <span className={cn('font-bold tabular-nums', remaining > 2 ? 'text-emerald-700' : 'text-cred')}>
+                {remaining}
+              </span>
+              /{FREE_CHATS_PER_DAY}
+            </button>
+            <ModelPicker model={model} onPick={(m) => { setModel(m); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }} />
           </div>
         </div>
+      ) : (
+        <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-3 lg:pb-4">
+          <div className="rounded-3xl border border-line bg-white shadow-soft">
+            <div className="flex items-end gap-2 px-3 py-2.5">
+              <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
+              <button
+                onClick={() => fileRef.current?.click()}
+                className={cn(
+                  'flex h-8 w-8 flex-none items-center justify-center rounded-full text-body transition hover:bg-black/5',
+                  file && 'text-brand',
+                )}
+                title={file ? `已选：${file}` : '上传文件（模拟）'}
+              >
+                <Plus size={16} />
+              </button>
+              <textarea
+                ref={taRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault()
+                    send()
+                  }
+                }}
+                rows={1}
+                placeholder="继续追问…"
+                className="max-h-[160px] min-w-0 flex-1 resize-none self-center bg-transparent py-1.5 text-[14px] text-ink outline-none placeholder:text-faint/70"
+              />
+              {sendBtn(false)}
+            </div>
+          </div>
 
-        {/* 额度提示 */}
-        <div className="mt-1.5 flex items-center justify-center gap-2 text-[11px] text-faint">
-          <div className="h-1 w-14 overflow-hidden rounded-full bg-black/[0.07]">
-            <motion.div
-              className={cn('h-full rounded-full', remaining > 2 ? 'bg-[#6FBF73]' : 'bg-gradient-to-r from-[#F04438] to-[#B91C1C]')}
-              animate={{ width: `${pct}%` }}
-            />
+          {/* 胶囊条下 footer 三段行 */}
+          <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
+            <div className="flex flex-none items-center gap-0.5">
+              <button
+                onClick={() => setWeb((v) => !v)}
+                className={cn(
+                  'flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-black/5',
+                  web ? 'bg-brand-soft text-brand-deep' : 'text-faint',
+                )}
+                title="联网搜索（模拟）"
+              >
+                <Globe size={13} />
+              </button>
+              <button
+                onClick={() => setDeep((v) => !v)}
+                className={cn(
+                  'flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-black/5',
+                  deep ? 'bg-brand-soft text-brand-deep' : 'text-faint',
+                )}
+                title="深度思考（模拟）"
+              >
+                <Brain size={13} />
+              </button>
+            </div>
+            <p className="hidden truncate text-[11px] text-faint sm:block">Claude 是 AI，回复仅供娱乐。</p>
+            <div className="flex-none">
+              <ModelPicker model={model} onPick={(m) => { setModel(m); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }} />
+            </div>
           </div>
-          <span>
-            今日免费对话 <span className={cn('font-bold tabular-nums', remaining > 0 ? 'text-emerald-700' : 'text-cred')}>{remaining}</span>/{FREE_CHATS_PER_DAY}
-          </span>
-          <button onClick={() => setQuotaOpen(true)} className="font-semibold text-cred underline-offset-2 hover:underline">
-            {remaining > 0 ? '看广告 / 邀请好友可加次数' : '额度用完，点此回血 →'}
-          </button>
-          <span className="hidden md:inline">回复为本地模拟生成</span>
         </div>
-      </div>
+      )}
 
       <QuotaModal open={quotaOpen} onClose={() => setQuotaOpen(false)} />
     </div>
