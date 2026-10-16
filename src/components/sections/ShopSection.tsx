@@ -35,6 +35,10 @@ export default function ShopSection() {
       pushToast({ type: 'warn', title: '金币不足！', desc: `还差 ${g.cost - coins} 金币，去做任务赚金币吧` })
       return
     }
+    if (!useUserStore.getState().loggedIn && g.kind === 'member') {
+      pushToast({ type: 'warn', title: '请先登录后再兑换会员', desc: '会员跟随账号，退出登录即失效' })
+      return
+    }
     if (g.kind === 'chats') {
       grantChats(g.value)
       pushToast({ type: 'success', title: `兑换成功：${g.name}！`, desc: '对话次数已到账' })

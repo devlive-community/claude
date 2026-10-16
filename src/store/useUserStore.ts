@@ -109,6 +109,10 @@ interface UserState {
   tasks: { done: Record<TaskId, boolean>; claimed: Record<TaskId, boolean> }
   loggedIn: boolean
   nickname: string
+  /** 当前登录手机号（模拟） */
+  phone: string | null
+  /** 会员归属手机号（会员跟随账号，退出/切换后失效） */
+  memberPhone: string | null
   redPacketBest: number
 
   ensureDaily: () => void
@@ -130,7 +134,7 @@ interface UserState {
   claimTask: (id: TaskId) => void
   inviteChatReward: () => boolean
   markRedPacketPlayed: (earned: number) => void
-  login: (nickname: string) => void
+  login: (nickname: string, phone: string) => void
   logout: () => void
 }
 
@@ -159,6 +163,8 @@ export const useUserStore = create<UserState>()(
       },
       loggedIn: false,
       nickname: '',
+      phone: null,
+      memberPhone: null,
       redPacketBest: 0,
 
       ensureDaily: () => {
@@ -263,12 +269,13 @@ export const useUserStore = create<UserState>()(
         set((s) => {
           const now = Date.now()
           const from = s.memberExpiresAt && s.memberExpiresAt > now ? s.memberExpiresAt : now
-          return { memberExpiresAt: from + days * 86_400_000 }
+          return { memberExpiresAt: from + days * 86_400_000, memberPhone: s.phone }
         }),
 
       isMember: () => {
-        const e = get().memberExpiresAt
-        return e !== null && e > Date.now()
+        const s = get()
+        const e = s.memberExpiresAt
+        return Boolean(s.loggedIn && s.phone && s.memberPhone === s.phone && e !== null && e > Date.now())
       },
 
       cutBargain: (amount, byName, self = false) =>
@@ -317,8 +324,8 @@ export const useUserStore = create<UserState>()(
           redPacketBest: Math.max(s.redPacketBest, earned),
         })),
 
-      login: (nickname) => set({ loggedIn: true, nickname }),
-      logout: () => set({ loggedIn: false, nickname: '' }),
+      login: (nickname, phone) => set({ loggedIn: true, nickname, phone }),
+      logout: () => set({ loggedIn: false, nickname: '', phone: null }),
     }),
     {
       name: 'claude-china-user-v1',

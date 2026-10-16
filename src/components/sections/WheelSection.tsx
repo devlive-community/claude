@@ -73,6 +73,10 @@ export default function WheelSection() {
         grantChats(prize.value)
         pushToast({ type: 'success', title: `转盘中奖：${prize.value} 次 AI 对话！`, desc: '额度已到账' })
       } else if (prize.type === 'member') {
+        if (!useUserStore.getState().loggedIn) {
+          pushToast({ type: 'warn', title: '请先登录后再领取会员奖品', desc: '会员跟随账号，退出登录即失效' })
+          return
+        }
         grantMember(1)
         pushToast({ type: 'success', title: '转盘中奖：1 天尊享会员！', desc: '模拟会员即刻生效' })
       } else {

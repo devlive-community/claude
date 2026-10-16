@@ -24,6 +24,10 @@ export default function MemberCard() {
   const active = isMember()
   const expireStr = memberExpiresAt ? new Date(memberExpiresAt).toLocaleDateString('zh-CN') : ''
 
+    if (!useUserStore.getState().loggedIn) {
+      pushToast({ type: 'warn', title: '请先登录后再开通会员', desc: '会员跟随账号，退出登录即失效' })
+      return
+    }
   const confirm = () => {
     grantMember(30)
     setConfirmOpen(false)

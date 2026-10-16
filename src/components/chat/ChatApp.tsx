@@ -29,6 +29,7 @@ import { renderMarkdown } from '../../lib/markdown'
 import { cn } from '../../lib/utils'
 import { ClaudeMark } from '../icons'
 import QuotaModal from './QuotaModal'
+import ForcedAdModal from './ForcedAdModal'
 
 /** 模型阵容（与官方 claude.ai 一致） */
 const MODELS = [
@@ -437,6 +438,7 @@ export default function ChatApp() {
   const renameFromFirstMessage = useChatStore((s) => s.renameFromFirstMessage)
 
   const consumeChat = useUserStore((s) => s.consumeChat)
+  const grantChats = useUserStore((s) => s.grantChats)
   const setTaskDone = useUserStore((s) => s.setTaskDone)
   const pushToast = useUIStore((s) => s.pushToast)
   const collapsed = useUIStore((s) => s.sidebarCollapsed)
@@ -448,6 +450,10 @@ export default function ChatApp() {
   const [model, setModel] = useState('Opus 5.5')
   const [file, setFile] = useState<string | null>(null)
   const [quotaOpen, setQuotaOpen] = useState(false)
+  /** 未登录发送：先看 10 秒广告解锁本次 */
+  const [forcedAd, setForcedAd] = useState(false)
+  const pendingRef = useRef<string | null>(null)
+  const adUnlockedRef = useRef(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -531,6 +537,13 @@ export default function ChatApp() {
     (raw?: string) => {
       const content = (raw ?? draft).trim()
       if (!content || useChatStore.getState().typing) return
+      // 未登录：先观看 10 秒广告，解锁本次发送（奖励 1 次）
+      if (!useUserStore.getState().loggedIn && !adUnlockedRef.current) {
+        pendingRef.current = content
+        setForcedAd(true)
+        return
+      }
+      adUnlockedRef.current = false
       if (useUserStore.getState().chatsRemaining() <= 0 || !consumeChat()) {
         setQuotaOpen(true)
         return
@@ -802,6 +815,17 @@ export default function ChatApp() {
       )}
 
       <QuotaModal open={quotaOpen} onClose={() => setQuotaOpen(false)} />
+      <ForcedAdModal
+        open={forcedAd}
+        onComplete={() => {
+          grantChats(1)
+          adUnlockedRef.current = true
+          setForcedAd(false)
+          const c = pendingRef.current
+          pendingRef.current = null
+          if (c) send(c)
+        }}
+      />
     </div>
   )
 }

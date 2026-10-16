@@ -109,6 +109,10 @@ export default function BargainCard() {
     pushToast({ type: 'coin', title: `恭喜砍掉 ¥${amount.toFixed(2)}！`, desc: '继续邀请好友助力！' })
   }
 
+    if (!useUserStore.getState().loggedIn) {
+      pushToast({ type: 'warn', title: '请先登录后再开通会员', desc: '会员跟随账号，退出登录即失效' })
+      return
+    }
   const claim = () => {
     grantMember(30)
     setClaimed(true)

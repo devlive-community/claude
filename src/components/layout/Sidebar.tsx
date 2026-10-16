@@ -118,7 +118,7 @@ function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       return
     }
     const nick = `客官${phone.slice(-4)}`
-    login(nick)
+    login(nick, phone)
     pushToast({ type: 'success', title: `欢迎回来，${nick}！`, desc: '登录状态仅为本地模拟' })
     onClose()
   }
@@ -263,6 +263,14 @@ export default function Sidebar({
           <p className="text-[11px] font-medium text-faint">最近</p>
           <CoinIcon size={13} className="opacity-50" />
         </div>
+        {!loggedIn ? (
+          <div className="rounded-xl border border-dashed border-line bg-white/50 px-3 py-4 text-center">
+            <p className="text-xs text-faint">登录后可查看历史记录</p>
+            <button onClick={() => setLoginOpen(true)} className="mt-2 text-[11px] font-semibold text-brand hover:underline">
+              登录 / 注册
+            </button>
+          </div>
+        ) : (
         <div className="space-y-px">
           {filtered.length === 0 && <p className="px-2 py-1.5 text-xs text-faint/70">暂无对话</p>}
           {filtered.map((c) => (
@@ -294,6 +302,7 @@ export default function Sidebar({
             </div>
           ))}
         </div>
+        )}
 
       </div>
 
