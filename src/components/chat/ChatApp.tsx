@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowUp,
-  Archive,
   Brain,
   Check,
   ChevronDown,
@@ -85,14 +84,15 @@ function MessageActions({ content, onRegenerate, isLast }: { content: string; on
   )
 }
 
-/** Project 下拉（claude.ai 同款：搜索 + 项目 + 新建） */
+/** Project 下拉（claude.ai 同款：搜索 + 新建；默认无预置项目） */
 function ProjectMenu() {
   const [open, setOpen] = useState(false)
+  const [kw, setKw] = useState('')
   const pushToast = useUIStore((s) => s.pushToast)
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => { setOpen((v) => !v); if (open) setKw('') }}
         className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-[12.5px] font-medium text-body transition hover:bg-black/5"
       >
         Project <ChevronDown size={12} className={cn('text-faint transition', open && 'rotate-180')} />
@@ -109,21 +109,30 @@ function ProjectMenu() {
             >
               <div className="flex items-center gap-2 rounded-lg border border-line px-2.5 py-2">
                 <Search size={13} className="flex-none text-faint" />
-                <input placeholder="搜索或创建项目" className="min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-faint" />
+                <input
+                  value={kw}
+                  onChange={(e) => setKw(e.target.value)}
+                  placeholder="搜索或创建项目"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-ink outline-none placeholder:text-faint"
+                />
                 <SlidersHorizontal size={13} className="flex-none text-faint" />
               </div>
-              <button
-                onClick={() => { setOpen(false); pushToast({ type: 'info', title: '项目 TrendForge（模拟数据）' }) }}
-                className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
-              >
-                <Archive size={14} className="text-faint" /> TrendForge
-              </button>
-              <button
-                onClick={() => { setOpen(false); pushToast({ type: 'info', title: '新建项目（模拟功能）' }) }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
-              >
-                <Plus size={14} className="text-faint" /> 新建项目
-              </button>
+              {kw.trim() ? (
+                <button
+                  onClick={() => { setOpen(false); setKw(''); pushToast({ type: 'info', title: `创建项目「${kw.trim()}」（模拟功能）` }) }}
+                  className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
+                >
+                  <Plus size={14} className="flex-none text-faint" />
+                  <span className="truncate">创建项目「{kw.trim()}」</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setOpen(false); pushToast({ type: 'info', title: '新建项目（模拟功能）' }) }}
+                  className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-body transition hover:bg-black/[0.04]"
+                >
+                  <Plus size={14} className="text-faint" /> 新建项目
+                </button>
+              )}
             </motion.div>
           </>
         )}
