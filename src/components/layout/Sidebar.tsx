@@ -21,7 +21,7 @@ import { useChatStore } from '../../store/useChatStore'
 import { useUserStore } from '../../store/useUserStore'
 import { useUIStore } from '../../store/useUIStore'
 import { cn } from '../../lib/utils'
-import { ClaudeMark, CoinIcon } from '../icons'
+import { CoinIcon } from '../icons'
 import Modal from '../ui/Modal'
 import QuotaModal from '../chat/QuotaModal'
 
@@ -194,12 +194,7 @@ export default function Sidebar({
         >
           <PanelLeft size={16} />
         </button>
-        <span className="flex items-center gap-1">
-          <span className="text-ink">
-            <ClaudeMark size={21} />
-          </span>
-          <span className="font-serif text-[17px] font-bold tracking-tight text-ink">Claude</span>
-        </span>
+        <span className="font-serif text-[17px] font-bold tracking-tight text-ink">Claude</span>
         <div className="ml-auto flex items-center gap-0.5">
           <button
             onClick={() => document.getElementById('sidebar-search')?.focus()}

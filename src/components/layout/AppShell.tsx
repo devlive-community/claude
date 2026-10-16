@@ -5,7 +5,7 @@ import Sidebar from './Sidebar'
 import InviteModal from './InviteModal'
 import ToastHost from '../ui/ToastHost'
 import CoinFlyHost from '../ui/CoinFlyHost'
-import { ClaudeMark } from '../icons'
+
 
 /** 应用外壳：与 claude.ai 一致 —— 侧栏承载一切，无顶栏、无页脚 */
 export default function AppShell({ children }: { children: ReactNode }) {
@@ -47,12 +47,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         >
           <Menu size={19} />
         </button>
-        <span className="flex items-center gap-1.5">
-          <span className="text-ink">
-            <ClaudeMark size={20} />
-          </span>
-          <span className="font-serif text-[15px] font-bold text-ink">Claude</span>
-        </span>
+        <span className="font-serif text-[15px] font-bold text-ink">Claude</span>
         <button
           onClick={() => navigate('/')}
           className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-body transition hover:bg-black/5"
