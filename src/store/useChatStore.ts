@@ -31,8 +31,13 @@ interface ChatState {
 }
 
 let seq = 0
+/** 会话 id 使用 UUID（与官方 claude.ai 一致） */
+const uuid = (): string =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now().toString(16)}-4${Math.random().toString(16).slice(2, 13)}-4${Math.random().toString(16).slice(2, 9)}-${((parseInt(Date.now().toString(16).slice(-4), 16) & 0x3fff) | 0x8000).toString(16)}-${Math.random().toString(16).slice(2, 14)}`
 const nid = () => `m${Date.now()}_${seq++}`
-const cid = () => `c${Date.now()}_${seq++}`
+const cid = () => uuid()
 
 export const useChatStore = create<ChatState>()(
   persist(
