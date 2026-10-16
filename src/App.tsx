@@ -32,8 +32,8 @@ export default function App() {
         <AppShell>
           <Routes>
             <Route path="/" element={<Navigate to="/new" replace />} />
-            <Route path="/new" element={<HomePage />} />
-            <Route path="/chat/:id" element={<HomePage />} />
+            <Route path="/new" element={<HomePage key="new" />} />
+            <Route path="/chat/:id" element={<HomePage key="chat" />} />
             <Route path="/paint" element={<PaintPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/shop" element={<ShopPage />} />

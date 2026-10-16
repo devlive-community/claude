@@ -3,13 +3,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowUp,
-  Brain,
+  AudioLines,
   Check,
   ChevronDown,
   ChevronRight,
   CircleAlert,
+  CornerDownLeft,
   Copy,
-  Globe,
   Loader2,
   Mic,
   PanelLeft,
@@ -19,7 +19,6 @@ import {
   Share2,
   SlidersHorizontal,
   Star,
-  AudioLines,
 } from 'lucide-react'
 import { useChatStore, selectActiveConversation } from '../../store/useChatStore'
 import { useUserStore } from '../../store/useUserStore'
@@ -37,7 +36,17 @@ const MODELS = [
   { name: 'Sonnet 5.5', desc: 'Most efficient for simpler tasks' },
   { name: 'Haiku 5.5', desc: 'Fastest for quick answers' },
 ]
-const MORE_MODELS = ['Fable 5', 'Opus 5', 'Opus 4.8', 'Opus 4.7', 'Opus 4.6', 'Opus 3', 'Sonnet 5', 'Sonnet 4.6', 'Haiku 4.5']
+const MORE_MODELS = [
+  { name: 'Fable 5', credits: true },
+  { name: 'Opus 5' },
+  { name: 'Opus 4.8' },
+  { name: 'Opus 4.7' },
+  { name: 'Opus 4.6' },
+  { name: 'Opus 3' },
+  { name: 'Sonnet 5' },
+  { name: 'Sonnet 4.6' },
+  { name: 'Haiku 4.5' },
+]
 const EFFORTS = [
   { name: 'Low' },
   { name: 'Medium', tag: 'Recommended' },
@@ -45,6 +54,7 @@ const EFFORTS = [
   { name: 'Extra' },
   { name: 'Max', warn: '4× or more usage' },
 ]
+const EFFORT_TIP = 'Effort 越高，回复越彻底，但耗时更长、额度消耗更快。'
 
 function greetingByHour() {
   const h = new Date().getHours()
@@ -142,12 +152,25 @@ function ProjectMenu() {
 }
 
 /** 模型行：Opus 5.5 / Medium / Manual，三个下拉（claude.ai 同款） */
+/** 模型行：模型名 + Effort 一体按钮 / Permission mode 按钮（claude.ai 同款） */
 function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: string) => void }) {
   const [mainOpen, setMainOpen] = useState(false)
   const [permOpen, setPermOpen] = useState(false)
   const [effort, setEffort] = useState('Medium')
   const [perm, setPerm] = useState<'Manual' | 'Auto'>('Manual')
   const pushToast = useUIStore((s) => s.pushToast)
+  const current = MODELS.find((m) => m.name === model)
+  const moreList = [...MODELS.filter((m) => m.name !== model), ...MORE_MODELS]
+
+  const pick = (name: string, credits?: boolean) => {
+    if (credits) {
+      pushToast({ type: 'warn', title: `${name} 需要使用额度`, desc: '模拟提示：仅尊享会员可用' })
+      return
+    }
+    onPickModel(name)
+    pushToast({ type: 'info', title: '模型已切换（模拟）', desc: name })
+    setMainOpen(false)
+  }
 
   return (
     <div className="flex items-center gap-0.5 text-[12.5px]">
@@ -155,7 +178,10 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
       <div className="relative">
         <button
           onClick={() => { setMainOpen((v) => !v); setPermOpen(false) }}
-          className="flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition hover:bg-black/5"
+          className={cn(
+            'flex items-center gap-1.5 rounded-lg px-1.5 py-1 transition hover:bg-black/5',
+            mainOpen && 'bg-black/5',
+          )}
         >
           <span className="font-semibold text-body">{model}</span>
           <span className="text-faint">{effort}</span>
@@ -170,37 +196,14 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                 exit={{ opacity: 0, y: 4 }}
                 className="card absolute bottom-9 right-0 z-30 w-72 p-1.5"
               >
-                {MODELS.map((m) => (
-                  <button
-                    key={m.name}
-                    onClick={() => {
-                      if (m.credits) pushToast({ type: 'warn', title: 'Fable 5.1 需要使用额度', desc: '模拟提示：仅尊享会员可用' })
-                      else {
-                        onPickModel(m.name)
-                        pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m.name })
-                      }
-                      setMainOpen(false)
-                    }}
-                    className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-black/[0.04]"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
-                        {m.name}
-                        {m.credits && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] font-normal text-faint">
-                            <CircleAlert size={9} /> 需要使用额度
-                          </span>
-                        )}
-                      </span>
-                      <span className="block text-[11.5px] text-faint">{m.desc}</span>
-                    </span>
-                    {m.credits ? (
-                      <span className="mt-0.5 flex-none rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
-                    ) : (
-                      m.name === model && <Check size={14} className="mt-1 flex-none text-ink" />
-                    )}
-                  </button>
-                ))}
+                {/* 当前模型（顶部 + 蓝勾） */}
+                <div className="flex items-start gap-2 px-2.5 py-2">
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13.5px] font-semibold text-ink">{model}</span>
+                    <span className="block text-[11.5px] text-faint">{current?.desc ?? '经典模型'}</span>
+                  </span>
+                  <Check size={15} className="mt-0.5 flex-none text-[#2C84DB]" strokeWidth={2.5} />
+                </div>
                 <div className="my-1 border-t border-line" />
                 {/* Effort 行（hover 展开子菜单） */}
                 <div className="group relative">
@@ -210,7 +213,8 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                       {effort} <ChevronRight size={12} />
                     </span>
                   </button>
-                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 w-56 p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 w-60 p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                    <p className="px-2.5 pb-1.5 pt-1 text-[11px] leading-relaxed text-faint">{EFFORT_TIP}</p>
                     {EFFORTS.map((e) => (
                       <button
                         key={e.name}
@@ -220,7 +224,7 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                         {e.name}
                         {e.tag && <span className="rounded-full border border-line px-1.5 py-px text-[9.5px] text-faint">{e.tag}</span>}
                         {e.warn && <span className="rounded-full bg-amber-50 px-1.5 py-px text-[9.5px] text-amber-700">⚠ {e.warn}</span>}
-                        {e.name === effort && <Check size={13} className="ml-auto text-ink" />}
+                        {e.name === effort && <Check size={13} className="ml-auto text-[#2C84DB]" strokeWidth={2.5} />}
                       </button>
                     ))}
                   </div>
@@ -231,15 +235,22 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                     更多模型
                     <ChevronRight size={12} className="text-faint" />
                   </button>
-                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 max-h-72 w-48 overflow-y-auto p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100 nice-scroll">
-                    {MORE_MODELS.map((m) => (
+                  <div className="card invisible absolute bottom-0 left-full z-40 ml-1 max-h-72 w-60 overflow-y-auto p-1.5 opacity-0 transition group-hover:visible group-hover:opacity-100 nice-scroll">
+                    {moreList.map((m) => (
                       <button
-                        key={m}
-                        onClick={() => { onPickModel(m); setMainOpen(false); pushToast({ type: 'info', title: '模型已切换（模拟）', desc: m }) }}
+                        key={m.name}
+                        onClick={() => pick(m.name, m.credits)}
                         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink transition hover:bg-black/[0.04]"
                       >
-                        {m}
-                        {m === model && <Check size={13} className="ml-auto text-ink" />}
+                        {m.name}
+                        {m.credits && (
+                          <>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] text-faint">
+                              <CircleAlert size={9} /> 需要使用额度
+                            </span>
+                            <span className="ml-auto rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
+                          </>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -256,8 +267,11 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
       {/* Permission mode 按钮（hover 才有背景） */}
       <div className="relative">
         <button
-          onClick={() => { setPermOpen((v) => !v); setMainOpen(false); }}
-          className="rounded-lg px-2 py-1 text-faint transition hover:bg-black/[0.06] hover:text-body"
+          onClick={() => { setPermOpen((v) => !v); setMainOpen(false) }}
+          className={cn(
+            'rounded-lg px-2 py-1 text-faint transition hover:bg-black/[0.06] hover:text-body',
+            permOpen && 'bg-black/[0.06] text-body',
+          )}
         >
           {perm}
         </button>
@@ -287,7 +301,7 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                       <span className="block text-[13px] font-semibold text-ink">{p.name}</span>
                       <span className="block text-[11px] leading-relaxed text-faint">{p.desc}</span>
                     </span>
-                    {p.name === perm && <Check size={14} className="mt-1 flex-none text-ink" />}
+                    {p.name === perm && <Check size={14} className="mt-1 flex-none text-[#2C84DB]" strokeWidth={2.5} />}
                   </button>
                 ))}
               </motion.div>
@@ -299,7 +313,6 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
   )
 }
 
-/** 麦克风下拉：未找到设备（claude.ai 同款提示） */
 function MicMenu() {
   const [open, setOpen] = useState(false)
   return (
@@ -386,8 +399,6 @@ export default function ChatApp() {
   const activeConv = useChatStore(selectActiveConversation)
   const typing = useChatStore((s) => s.typing)
   const setTyping = useChatStore((s) => s.setTyping)
-  const draft = useChatStore((s) => s.draft)
-  const setDraft = useChatStore((s) => s.setDraft)
   const addMsg = useChatStore((s) => s.addMsg)
   const updateLastAi = useChatStore((s) => s.updateLastAi)
   const removeLastAi = useChatStore((s) => s.removeLastAi)
@@ -399,8 +410,9 @@ export default function ChatApp() {
   const collapsed = useUIStore((s) => s.sidebarCollapsed)
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed)
 
-  const [web, setWeb] = useState(false)
-  const [deep, setDeep] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [web] = useState(false)
+  const [deep] = useState(false)
   const [model, setModel] = useState('Opus 5.5')
   const [file, setFile] = useState<string | null>(null)
   const [quotaOpen, setQuotaOpen] = useState(false)
@@ -661,59 +673,74 @@ export default function ChatApp() {
             </div>
           </div>
 
-          {/* 胶囊条下 footer 三段行 */}
+          {/* 对话态：大圆角输入条 + 官方式 footer 三段行 */}
           <div className="mx-auto w-full max-w-3xl flex-none px-4 pb-3 lg:pb-4">
-          <div className="rounded-3xl border border-line bg-white shadow-soft">
-            <div className="flex items-end gap-2 px-3 py-2.5">
-              {composerTools}
-              <textarea
-                ref={taRef}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                    e.preventDefault()
-                    send()
-                  }
-                }}
-                rows={1}
-                placeholder="继续追问…"
-                className="max-h-[160px] min-w-0 flex-1 resize-none self-center bg-transparent py-1.5 text-[14px] text-ink outline-none placeholder:text-faint/70"
-              />
-              {sendBtn()}
+            <div className="rounded-[20px] border border-line bg-white shadow-soft">
+              <div className="flex items-center gap-2 pl-5 pr-2">
+                <textarea
+                  ref={taRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                      e.preventDefault()
+                      send()
+                    }
+                  }}
+                  rows={1}
+                  placeholder="Reply"
+                  className="max-h-[160px] min-w-0 flex-1 resize-none bg-transparent py-4 text-[14px] text-ink outline-none placeholder:text-faint/70"
+                />
+                <motion.button
+                  onClick={() => send()}
+                  disabled={typing || !draft.trim()}
+                  whileTap={{ scale: 0.92 }}
+                  className={cn(
+                    'flex h-8 w-8 flex-none items-center justify-center rounded-lg transition',
+                    typing || !draft.trim() ? 'text-[#B8B5AC]' : 'text-ink hover:bg-black/5',
+                  )}
+                  aria-label="发送"
+                >
+                  {typing ? <Loader2 size={15} className="animate-spin" /> : <CornerDownLeft size={16} />}
+                </motion.button>
+              </div>
             </div>
-          </div>
 
-          {/* 胶囊条下 footer 三段行 */}
-          <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
-            <div className="flex flex-none items-center gap-0.5">
-              <button
-                onClick={() => setWeb((v) => !v)}
-                className={cn(
-                  'flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-black/5',
-                  web ? 'bg-brand-soft text-brand-deep' : 'text-faint',
-                )}
-                title="联网搜索（模拟）"
-              >
-                <Globe size={13} />
-              </button>
-              <button
-                onClick={() => setDeep((v) => !v)}
-                className={cn(
-                  'flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-black/5',
-                  deep ? 'bg-brand-soft text-brand-deep' : 'text-faint',
-                )}
-                title="深度思考（模拟）"
-              >
-                <Brain size={13} />
-              </button>
-            </div>
-            <p className="hidden truncate text-[11px] text-faint sm:block">Claude 是 AI，回复仅供娱乐。</p>
-            <div className="flex-none">
-              <ModelLine model={model} onPickModel={setModel} />
+            <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
+              <div className="flex flex-none items-center gap-0.5">
+                <input ref={fileRef} type="file" className="hidden" onChange={pickFile} />
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-lg text-faint transition hover:bg-black/5 hover:text-body',
+                    file && 'text-brand',
+                  )}
+                  title={file ? `已选：${file}` : '上传文件（模拟）'}
+                >
+                  <Plus size={14} />
+                </button>
+                <button
+                  onClick={() => pushToast({ type: 'info', title: '语音输入（模拟）', desc: '未找到语音设备' })}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-faint transition hover:bg-black/5 hover:text-body"
+                  title="语音输入"
+                >
+                  <Mic size={14} />
+                </button>
+                <button
+                  onClick={() => pushToast({ type: 'info', title: '语音模式（模拟功能）' })}
+                  className="flex h-7 items-center gap-0.5 rounded-lg px-1 text-faint transition hover:bg-black/5 hover:text-body"
+                  title="语音模式"
+                >
+                  <AudioLines size={14} />
+                  <ChevronDown size={10} />
+                </button>
+              </div>
+              <p className="hidden truncate text-[11px] text-faint sm:block">Claude 是 AI，回复仅供娱乐。</p>
+              <div className="flex-none">
+                <ModelLine model={model} onPickModel={setModel} />
+              </div>
             </div>
           </div>
-        </div>
         </>
       )}
 

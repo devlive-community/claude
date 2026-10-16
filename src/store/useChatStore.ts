@@ -20,14 +20,12 @@ interface ChatState {
   conversations: Conversation[]
   activeId: string | null
   typing: boolean
-  draft: string
   newConversation: () => void
   setActive: (id: string | null) => void
   deleteConversation: (id: string) => void
   renameFromFirstMessage: (content: string) => void
   addMsg: (m: Omit<ChatMessage, 'id' | 'ts'>) => void
   setTyping: (b: boolean) => void
-  setDraft: (s: string) => void
   updateLastAi: (content: string, tag?: string) => void
   removeLastAi: () => void
 }
@@ -42,9 +40,8 @@ export const useChatStore = create<ChatState>()(
       conversations: [],
       activeId: null,
       typing: false,
-      draft: '',
 
-      newConversation: () => set({ activeId: null, draft: '' }),
+      newConversation: () => set({ activeId: null }),
 
       setActive: (activeId) => set({ activeId }),
 
@@ -78,7 +75,6 @@ export const useChatStore = create<ChatState>()(
         }),
 
       setTyping: (typing) => set({ typing }),
-      setDraft: (draft) => set({ draft }),
 
       updateLastAi: (content, tag) =>
         set((s) => ({
