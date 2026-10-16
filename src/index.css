@@ -275,3 +275,35 @@
 .anim-sway { animation: sway 4s ease-in-out infinite; transform-origin: top center; }
 .anim-floaty { animation: floaty 5s ease-in-out infinite; }
 .anim-blink { animation: blink-dot 1.6s ease-in-out infinite; }
+
+/* 对话输入区功能小按钮 */
+.chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--color-body);
+  background: var(--color-paper);
+  border: 1px solid var(--color-line);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.chip-toggle:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold-deep);
+}
+.chip-on {
+  background: rgba(217, 119, 87, 0.12);
+  border-color: var(--color-brand);
+  color: var(--color-brand-deep);
+  font-weight: 600;
+}
+
+/* 锚点定位时为固定导航栏留出空间 */
+section[id] {
+  scroll-margin-top: 76px;
+}
