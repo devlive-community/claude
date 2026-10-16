@@ -152,8 +152,9 @@ function ProjectMenu() {
 }
 
 /** 模型行：Opus 5.5 / Medium / Manual，三个下拉（claude.ai 同款） */
-/** 模型行：模型名 + Effort 一体按钮 / Permission mode 按钮（claude.ai 同款） */
-function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: string) => void }) {
+/** 模型行：模型名 + Effort 一体按钮 / Permission mode 按钮（claude.ai 同款）
+ * variant：new=新对话完整模型列表 / chat=对话态精简菜单（仅当前模型） */
+function ModelLine({ model, onPickModel, variant = 'chat' }: { model: string; onPickModel: (m: string) => void; variant?: 'new' | 'chat' }) {
   const [mainOpen, setMainOpen] = useState(false)
   const [permOpen, setPermOpen] = useState(false)
   const [effort, setEffort] = useState('Medium')
@@ -196,14 +197,44 @@ function ModelLine({ model, onPickModel }: { model: string; onPickModel: (m: str
                 exit={{ opacity: 0, y: 4 }}
                 className="card absolute bottom-9 right-0 z-30 w-72 p-1.5"
               >
-                {/* 当前模型（顶部 + 蓝勾） */}
-                <div className="flex items-start gap-2 px-2.5 py-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[13.5px] font-semibold text-ink">{model}</span>
-                    <span className="block text-[11.5px] text-faint">{current?.desc ?? '经典模型'}</span>
-                  </span>
-                  <Check size={15} className="mt-0.5 flex-none text-[#2C84DB]" strokeWidth={2.5} />
-                </div>
+                {variant === 'new' ? (
+                  /* 新对话：完整模型列表（claude.ai 新对话同款） */
+                  <>
+                    {MODELS.map((m) => (
+                      <button
+                        key={m.name}
+                        onClick={() => pick(m.name, m.credits)}
+                        className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-black/[0.04]"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+                            {m.name}
+                            {m.credits && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-px text-[9.5px] font-normal text-faint">
+                                <CircleAlert size={9} /> 需要使用额度
+                              </span>
+                            )}
+                          </span>
+                          <span className="block text-[11.5px] text-faint">{m.desc}</span>
+                        </span>
+                        {m.credits ? (
+                          <span className="mt-0.5 flex-none rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-semibold text-[#1A73E8]">购买额度</span>
+                        ) : (
+                          m.name === model && <Check size={15} className="mt-0.5 flex-none text-[#2C84DB]" strokeWidth={2.5} />
+                        )}
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  /* 对话态：顶部仅当前模型（+ 蓝勾） */
+                  <div className="flex items-start gap-2 px-2.5 py-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13.5px] font-semibold text-ink">{model}</span>
+                      <span className="block text-[11.5px] text-faint">{current?.desc ?? '经典模型'}</span>
+                    </span>
+                    <Check size={15} className="mt-0.5 flex-none text-[#2C84DB]" strokeWidth={2.5} />
+                  </div>
+                )}
                 <div className="my-1 border-t border-line" />
                 {/* Effort 行（hover 展开子菜单） */}
                 <div className="group relative">
@@ -631,7 +662,7 @@ export default function ChatApp() {
             {/* 输入卡下方外部行：左 Project / 右 模型行（claude.ai 同款） */}
             <div className="mt-2.5 flex items-center justify-between px-1">
               <ProjectMenu />
-              <ModelLine model={model} onPickModel={setModel} />
+              <ModelLine model={model} onPickModel={setModel} variant="new" />
             </div>
           </div>
         </div>
